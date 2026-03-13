@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikhmon Style - Rizfx System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --bg-body: #ebedef;
+            --sidebar-bg: #2f353a;
+            --sidebar-hover: #202328;
+            --header-bg: #20a8d8;
+            --white: #ffffff;
+            --text-main: #3e5569;
+            --border-color: #c8ced3;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        aside {
+            width: 230px;
+            background: var(--sidebar-bg);
+            color: #fff;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.2);
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-info {
+            padding: 20px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        nav {
+            flex: 1;
+            padding-top: 10px;
+        }
+
+        .nav-group-title {
+            padding: 10px 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        nav button, .dropdown-btn {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #e4e7ea;
+            padding: 12px 20px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        nav button:hover, nav button.active, .dropdown-btn:hover {
+            background: var(--sidebar-hover);
+            color: #fff;
+        }
+
+        .dropdown-container {
+            display: none;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .dropdown-container button {
+            padding-left: 45px;
+            font-size: 13px;
+        }
+
+        .arrow-icon {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+
+        .dropdown-btn.active .arrow-icon {
+            transform: rotate(90deg);
+        }
+
+        nav button svg, .dropdown-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            opacity: 0.7;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: var(--header-bg);
+            padding: 10px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .content-body {
+            padding: 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .m-card {
+            border-radius: 4px;
+            color: white;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .m-card.blue { background: #20a8d8; }
+        .m-card.green { background: #4dbd74; }
+        .m-card.yellow { background: #ffc107; color: #2f353a; }
+        .m-card.red { background: #f86c6b; }
+
+        .m-card-title { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+        .m-card-desc { font-size: 13px; opacity: 0.9; }
+
+        .card {
+            background: white;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            padding: 10px 15px;
+            background: #f0f3f5;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 15px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 3px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary { background: #20a8d8; color: white; }
+        .btn-success { background: #4dbd74; color: white; }
+        .btn-warning { background: #ffc107; color: #2f353a; }
+        .btn-outline { background: white; border-color: var(--border-color); color: var(--text-main); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f0f3f5;
+            text-align: center;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .rekap-wrapper { overflow-x: auto; }
+        
+        .section { display: none; }
+        .section.active { display: block; }
+
+        #loading-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(255,255,255,0.7);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; visibility: hidden;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .chart-container { height: 350px; margin-top: 15px; }
+
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5); display: none;
+            justify-content: center; align-items: center; z-index: 11000;
+        }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 4px;
+            width: 320px;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-pending { background: #ffc107; color: #2f353a; }
+        .badge-lunas { background: #4dbd74; color: white; }
+    </style>
+</head>
+<body>
+
+<div id="thermal-canvas-container" style="position: absolute; left: -9999px;"></div>
+
+<aside>
+    <div class="sidebar-brand">DATABASE<span style="font-weight: normal; font-size: 12px; vertical-align: middle;"></span></div>
+    <div class="user-info">
+        <strong>Admin</strong><br>
+        <span style="font-size: 11px; opacity: 0.7;">Rizfx</span>
+    </div>
+    <nav>
+        <button onclick="setSystemContext('rumah'); showSection('data-pegawai')" id="nav-dashboard-rumah" class="active">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Dashboard
+        </button>
+
+        <button class="dropdown-btn" onclick="toggleDropdown(this)">
+            <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+            Absensi RUMAH
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+        </button>
+        <div class="dropdown-container">
+            <button onclick="setSystemContext('rumah'); showSection('input-absensi')" id="nav-absen-rumah">
+                <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                Hotspot / Absensi
+            </button>
+            <button onclick="setSystemContext('rumah'); showSection('rekap-bulanan')" id="nav-rekap-rumah">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                Report / Payroll
+            </button>
+            <button onclick="setSystemContext('rumah'); showSection('history-gaji')" id="nav-history-rumah">
+                <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                Settings / Riwayat
+            </button>
+        </div>
+
+        <button class="dropdown-btn" onclick="toggleDropdown(this)">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Pengeluaran RUMAH
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+        </button>
+        <div class="dropdown-container">
+            <button onclick="setSystemContext('rumah'); showSection('input-pengeluaran')" id="nav-pengeluaran-rumah">
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                Input Barang
+            </button>
+            <button onclick="setSystemContext('rumah'); showSection('rekap-pengeluaran')" id="nav-rekap-pengeluaran-rumah">
+                <svg viewBox="0 0 24 24"><path d="M5 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v14H5V5zm2 2v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h7v-2H7z"/></svg>
+                Rekap & Cloud
+            </button>
+        </div>
+
+        <button class="dropdown-btn" onclick="toggleDropdown(this)">
+            <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+            Absensi MUSHOLLA
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+        </button>
+        <div class="dropdown-container">
+            <button onclick="setSystemContext('musholla'); showSection('input-absensi')" id="nav-absen-musholla">
+                <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                Hotspot / Absensi
+            </button>
+            <button onclick="setSystemContext('musholla'); showSection('rekap-bulanan')" id="nav-rekap-musholla">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                Report / Payroll
+            </button>
+            <button onclick="setSystemContext('musholla'); showSection('history-gaji')" id="nav-history-musholla">
+                <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                Settings / Riwayat
+            </button>
+        </div>
+
+        <button class="dropdown-btn" onclick="toggleDropdown(this)">
+            <svg viewBox="0 0 24 24"><path d="M12 21l-2-2h-7v-14h18v10h-2v-8h-14v10h5l2 2 4-4 4 4z"/></svg>
+            Pengeluaran MUSHOLLA
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+        </button>
+        <div class="dropdown-container">
+            <button onclick="setSystemContext('musholla'); showSection('input-pengeluaran')" id="nav-pengeluaran-musholla">
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                Input Barang
+            </button>
+            <button onclick="setSystemContext('musholla'); showSection('rekap-pengeluaran')" id="nav-rekap-pengeluaran-musholla">
+                <svg viewBox="0 0 24 24"><path d="M5 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v14H5V5zm2 2v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h7v-2H7z"/></svg>
+                Rekap & Cloud
+            </button>
+        </div>
+
+        <button onclick="sessionStorage.removeItem('rizfx_authenticated'); location.reload();" style="color:#f86c6b; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <svg viewBox="0 0 24 24"><path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z" /></svg>
+            Logout
+        </button>
+    </nav>
+</aside>
+
+<main>
+    <header>
+        <div id="header-title" style="font-size: 14px; font-weight: bold;">Dashboard (Rumah)</div>
+        <div style="font-size: 13px;">Kemangi 41 • Theme • <span onclick="location.reload()" style="cursor:pointer">Logout</span></div>
+    </header>
+
+    <div class="content-body">
+        
+        <div id="data-pegawai" class="section active">
+            <div class="dashboard-grid">
+                <div class="m-card blue">
+                    <div class="m-card-title" id="count-pegawai-rumah">0</div>
+                    <div class="m-card-desc">Pegawai RUMAH</div>
+                </div>
+                <div class="m-card blue">
+                    <div class="m-card-title" id="count-pegawai-musholla">0</div>
+                    <div class="m-card-desc">Pegawai MUSHOLLA</div>
+                </div>
+                <div class="m-card green">
+                    <div class="m-card-title" id="stat-active-rumah">-</div>
+                    <div class="m-card-desc">Hadir RUMAH Hari Ini</div>
+                </div>
+                <div class="m-card green">
+                    <div class="m-card-title" id="stat-active-musholla">-</div>
+                    <div class="m-card-desc">Hadir MUSHOLLA Hari Ini</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Curva Gabungan Pengeluaran (Rumah & Musholla)</div>
+                <div class="card-body">
+                    <div class="chart-container"><canvas id="combinedChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" id="card-tambah-title">Tambah Pegawai Baru (Rumah)</div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div>
+                            <label>Nama Lengkap</label>
+                            <input type="text" id="p-nama" placeholder="Budi Santoso">
+                        </div>
+                        <div>
+                            <label>Status</label>
+                            <select id="p-status">
+                                <option value="Kepala Tukang">Kepala Tukang</option>
+                                <option value="Tukang">Tukang</option>
+                                <option value="Laden">Laden</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Rate Gaji (Rp)</label>
+                            <input type="number" id="p-gaji" placeholder="150000">
+                        </div>
+                        <button class="btn btn-primary" id="btn-tambah">Simpan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Daftar Pegawai Aktif</div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th style="text-align: left;">Nama</th>
+                                <th>Status</th>
+                                <th>Rate Gaji</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="list-pegawai"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="input-absensi" class="section">
+            <div class="card">
+                <div class="card-header">Input Kehadiran Harian</div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div>
+                            <label>Tanggal</label>
+                            <input type="date" id="absen-tgl">
+                        </div>
+                        <div>
+                            <label>Pilih Pegawai</label>
+                            <select id="absen-pegawai"></select>
+                        </div>
+                        <div>
+                            <label>Status</label>
+                            <select id="absen-status">
+                                <option value="H">Hadir Penuh (1)</option>
+                                <option value="SH">Setengah Hari (0.5)</option>
+                                <option value="A">Alpa (0)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-success" id="btn-absen">Catat Absen</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="judul-harian">Log Absensi</div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr><th style="text-align: left;">Nama</th><th>Status Absen</th><th>Aksi</th></tr>
+                        </thead>
+                        <tbody id="list-harian"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="rekap-bulanan" class="section">
+            <div class="card">
+                <div class="card-header">Laporan & Payroll</div>
+                <div class="card-body">
+                    <div class="form-grid" style="margin-bottom: 20px;">
+                        <div>
+                            <label>Periode</label>
+                            <select id="filter-periode">
+                                <option value="1">Periode 1</option>
+                                <option value="2" selected>Periode 2</option>
+                            </select>
+                        </div>
+                        <div><label>Mulai</label><input type="number" id="custom-start" value="16"></div>
+                        <div><label>Selesai</label><input type="number" id="custom-end" value="31"></div>
+                        <div style="font-size: 12px; color: #666;"><span id="label-periode-tgl">-</span></div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="btn btn-outline" onclick="window.downloadPDFAbsen()">PDF Absensi</button>
+                        <button class="btn btn-primary" onclick="window.downloadPDFGaji()">PDF Payroll</button>
+                        <button class="btn btn-warning" onclick="window.printThermal()">Thermal PDF</button>
+                        <button class="btn btn-success" id="btn-simpan-payroll">Simpan ke Cloud</button>
+                    </div>
+
+                    <div class="rekap-wrapper">
+                        <table id="table-rekap-main">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Nama</th>
+                                    <th rowspan="2">Status</th>
+                                    <th id="th-tanggal-range" colspan="16">Tanggal</th>
+                                    <th colspan="3">Total</th>
+                                </tr>
+                                <tr id="hari-header"></tr>
+                            </thead>
+                            <tbody id="rekap-body"></tbody>
+                        </table>
+                    </div>
+                    
+                    <h4 style="margin: 20px 0 10px 0;">Rincian Pembayaran</h4>
+                    <div class="rekap-wrapper">
+                        <table id="table-gaji-main">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Nama Pegawai</th>
+                                    <th>Status Pekerjaan</th>
+                                    <th>Rate Harian</th>
+                                    <th>Total Poin</th>
+                                    <th>Gaji Diterima</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payroll-body"></tbody>
+                            <tfoot id="payroll-footer"></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="input-pengeluaran" class="section">
+            <div class="card">
+                <div class="card-header" id="header-input-exp">Input Data Barang Rumah</div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div><label>Tanggal</label><input type="date" id="exp-tgl"></div>
+                        <div><label>Nama Barang</label><input type="text" id="exp-nama" placeholder="Semen"></div>
+                        <div><label>Jumlah</label><input type="text" id="exp-qty" placeholder="2 Sak"></div>
+                        <div><label>Harga Satuan</label><input type="number" id="exp-satuan" placeholder="100000"></div>
+                        <div><label>Total (Manual)</label><input type="number" id="exp-total" placeholder="200000"></div>
+                        <div>
+                            <label>Status Pembayaran</label>
+                            <select id="exp-status">
+                                <option value="LUNAS">LUNAS</option>
+                                <option value="PENDING">PENDING</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="btn-save-exp">Simpan Barang</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="rekap-pengeluaran" class="section">
+            <div class="analytics-grid">
+                <div class="card"><div class="card-body"><small>PENGELUARAN FILTER INI</small><h3 id="stat-exp-month" style="margin:5px 0; color:#f86c6b;">Rp 0</h3></div></div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="header-chart-exp">Grafik Pengeluaran Rumah</div>
+                <div class="card-body">
+                    <div class="chart-container"><canvas id="expChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="header-table-exp">Data Rekap Pengeluaran</div>
+                <div class="card-body">
+                    <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <button class="btn btn-outline" id="btn-pdf-exp">Download PDF</button>
+                        <button class="btn btn-success" onclick="openModalCloudExp()">Simpan Ke Cloud</button>
+                        
+                        <div style="display: flex; gap: 5px; align-items: center; margin-left: auto;">
+                            <select id="filter-exp-month" style="width: 120px;"></select>
+                            <select id="filter-exp-year" style="width: 90px;"></select>
+                        </div>
+                    </div>
+                    <div class="rekap-wrapper">
+                        <table id="table-exp-main">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th style="text-align: left;">Nama Barang</th>
+                                    <th>Jumlah</th>
+                                    <th>Harga Satuan</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="exp-body"></tbody>
+                            <tfoot id="exp-footer"></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="history-gaji" class="section">
+            <div class="analytics-grid">
+                <div class="card"><div class="card-body"><small>TOTAL TAHUN INI</small><h3 id="stat-total-tahun" style="margin:5px 0; color:#20a8d8;">Rp 0</h3></div></div>
+                <div class="card"><div class="card-body"><small>RATA-RATA BULAN</small><h3 id="stat-avg-bulan" style="margin:5px 0; color:#4dbd74;">Rp 0</h3></div></div>
+                <div class="card"><div class="card-body"><small>TERAJIN</small><h3 id="stat-rajin-h" style="margin:5px 0; color:#ffc107;">-</h3></div></div>
+            </div>
+            <div class="card">
+                <div class="card-header">Traffic Monitor (Payroll Chart)</div>
+                <div class="card-body">
+                    <div class="chart-container"><canvas id="payrollChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">History Pengeluaran</div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr><th>Bulan</th><th>Periode 1</th><th>Periode 2</th><th>Total</th></tr>
+                        </thead>
+                        <tbody id="history-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="login-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#2f353a; display:flex; justify-content:center; align-items:center; z-index:10000;">
+    <div style="background:white; padding:30px; border-radius:4px; width:300px; text-align:center;">
+        <h2 style="margin:0 0 10px 0; color:#20a8d8;">MASUK</h2>
+        <p style="font-size: 12px; margin-bottom: 20px;">Voucher & Payroll System</p>
+        <input type="password" id="admin-pass" placeholder="Password" style="margin-bottom:15px; text-align:center;">
+        <button id="btn-login" class="btn btn-primary" style="width:100%; justify-content: center;">Login</button>
+        <p id="login-err" style="color:#f86c6b; font-size:12px; margin-top:10px; display:none;">Password Salah!</p>
+    </div>
+</div>
+
+<div id="loading-overlay"><b>Processing...</b></div>
+
+<div id="modal-print" class="modal-overlay">
+    <div class="modal-content">
+        <h4 style="margin-top:0">Cetak Slip Gaji</h4>
+        <label style="font-size: 12px;">Pilih Pegawai:</label>
+        <select id="print-range" style="margin: 10px 0 20px 0;"></select>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary" style="flex:1" onclick="executeThermalToPDF()">Cetak PDF</button>
+            <button class="btn btn-outline" style="flex:1" onclick="document.getElementById('modal-print').style.display='none'">Batal</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-cloud-exp" class="modal-overlay">
+    <div class="modal-content">
+        <h4 style="margin-top:0">Simpan Pengeluaran</h4>
+        <p style="font-size: 12px; margin-bottom: 10px;">Pilih Periode Bulan yang ingin disimpan ke Cloud:</p>
+        
+        <label style="font-size: 11px;">Tahun:</label>
+        <select id="cloud-exp-year" style="margin-bottom: 10px;"></select>
+        
+        <label style="font-size: 11px;">Bulan:</label>
+        <select id="cloud-exp-month" style="margin-bottom: 20px;">
+            <option value="01">Januari</option>
+            <option value="02">Februari</option>
+            <option value="03">Maret</option>
+            <option value="04">April</option>
+            <option value="05">Mei</option>
+            <option value="06">Juni</option>
+            <option value="07">Juli</option>
+            <option value="08">Agustus</option>
+            <option value="09">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Desember</option>
+        </select>
+
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-success" style="flex:1" onclick="executeCloudExp()">Simpan</button>
+            <button class="btn btn-outline" style="flex:1" onclick="document.getElementById('modal-cloud-exp').style.display='none'">Batal</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, remove, get, off } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBLOFcW9Q-ETL48ouy0SaLkD8WNJp-VeHY",
+        authDomain: "absensi-cffc4.firebaseapp.com",
+        projectId: "absensi-cffc4",
+        storageBucket: "absensi-cffc4.firebasestorage.app",
+        messagingSenderId: "25616314956",
+        appId: "1:25616314956:web:2361037e3c68a4477f7ae9",
+        measurementId: "G-67T3772PBN",
+        databaseURL: "https://absensi-cffc4-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let currentSystem = 'rumah';
+    let combinedChart = null;
+    let payrollChart = null;
+    let expChart = null;
+    
+    // Data Storage
+    let dataPegawai = {}; let dataPegawaiMusholla = {};
+    let dataAbsensi = {}; let dataAbsensiMusholla = {};
+    let dataExp = {}; let dataExpMusholla = {};
+    let histPayroll = {}; let histPayrollMusholla = {};
+    let histExpCloud = {}; let histExpCloudMusholla = {};
+    
+    let currentGrandTotal = 0;
+    let currentExpTotal = 0;
+    const overlay = document.getElementById('loading-overlay');
+    document.getElementById('absen-tgl').valueAsDate = new Date();
+    document.getElementById('exp-tgl').valueAsDate = new Date();
+
+    // Init Filter Elements
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const mSelect = document.getElementById('filter-exp-month');
+    const ySelect = document.getElementById('filter-exp-year');
+    const now = new Date();
+    
+    monthNames.forEach((m, i) => {
+        const opt = document.createElement('option');
+        opt.value = String(i + 1).padStart(2, '0');
+        opt.innerText = m;
+        if(i === now.getMonth()) opt.selected = true;
+        mSelect.appendChild(opt);
+    });
+
+    for(let i = now.getFullYear() - 1; i <= now.getFullYear() + 1; i++) {
+        const opt = document.createElement('option');
+        opt.value = i; opt.innerText = i;
+        if(i === now.getFullYear()) opt.selected = true;
+        ySelect.appendChild(opt);
+    }
+
+    mSelect.onchange = () => renderExp();
+    ySelect.onchange = () => renderExp();
+
+    function getPaths() {
+        return {
+            pegawai: currentSystem === 'rumah' ? 'pegawai' : 'pegawai_musholla',
+            absensi: currentSystem === 'rumah' ? 'absensi' : 'absensi_musholla',
+            history: currentSystem === 'rumah' ? 'history_payroll' : 'history_payroll_musholla',
+            pengeluaran: currentSystem === 'rumah' ? 'pengeluaran_rumah' : 'pengeluaran_musholla',
+            totalExp: currentSystem === 'rumah' ? 'total_pengeluaran_rumah' : 'total_pengeluaran_musholla'
+        };
+    }
+
+    window.setSystemContext = (sys) => {
+        currentSystem = sys;
+        const sysLabel = sys.toUpperCase();
+        document.getElementById('header-title').innerText = `Dashboard (${sysLabel})`;
+        document.getElementById('card-tambah-title').innerText = `Tambah Pegawai Baru (${sysLabel})`;
+        
+        document.getElementById('header-input-exp').innerText = `Input Data Barang ${sysLabel}`;
+        document.getElementById('header-chart-exp').innerText = `Grafik Pengeluaran ${sysLabel}`;
+        document.getElementById('header-table-exp').innerText = `Data Rekap Pengeluaran ${sysLabel}`;
+
+        initListeners();
+    };
+
+    window.toggleDropdown = (btn) => {
+        btn.classList.toggle("active");
+        const container = btn.nextElementSibling;
+        container.style.display = container.style.display === "block" ? "none" : "block";
+    };
+
+    window.prosesLogin = async () => {
+        const input = document.getElementById('admin-pass').value;
+        const err = document.getElementById('login-err');
+        try {
+            const snapshot = await get(ref(db, 'admin_config/password'));
+            if (input === String(snapshot.val())) {
+                document.getElementById('login-screen').style.display = 'none';
+                sessionStorage.setItem('rizfx_authenticated', 'true');
+            } else {
+                err.style.display = 'block'; setTimeout(() => { err.style.display = 'none'; }, 2500);
+            }
+        } catch (e) { alert("Error Database"); }
+    };
+
+    if (sessionStorage.getItem('rizfx_authenticated') === 'true') {
+        document.getElementById('login-screen').style.display = 'none';
+    }
+
+    function initListeners() {
+        // Listener RUMAH
+        onValue(ref(db, 'pegawai'), (snap) => {
+            if(currentSystem === 'rumah') dataPegawai = snap.val() || {};
+            dataPegawaiRumahGlobal = snap.val() || {};
+            document.getElementById('count-pegawai-rumah').innerText = Object.keys(dataPegawaiRumahGlobal).length;
+            if(currentSystem === 'rumah') { renderPegawai(); updateDropdown(); renderRekap(); }
+            updateDashboardStats();
+        });
+        onValue(ref(db, 'absensi'), (snap) => {
+            if(currentSystem === 'rumah') dataAbsensi = snap.val() || {};
+            dataAbsensiRumahGlobal = snap.val() || {};
+            if(currentSystem === 'rumah') { renderDaftarHarian(); renderRekap(); }
+            updateDashboardStats();
+        });
+        onValue(ref(db, 'history_payroll'), (snap) => {
+            histPayroll = snap.val() || {};
+            if(currentSystem === 'rumah') { renderHistory(histPayroll); updateAnalytics(histPayroll); }
+            renderCombinedChart();
+        });
+        onValue(ref(db, 'total_pengeluaran_rumah'), (snap) => {
+            histExpCloud = snap.val() || {};
+            renderCombinedChart();
+        });
+        onValue(ref(db, 'pengeluaran_rumah'), (snap) => {
+            if(currentSystem === 'rumah') { dataExp = snap.val() || {}; renderExp(); }
+        });
+
+        // Listener MUSHOLLA
+        onValue(ref(db, 'pegawai_musholla'), (snap) => {
+            if(currentSystem === 'musholla') dataPegawai = snap.val() || {};
+            dataPegawaiMushollaGlobal = snap.val() || {};
+            document.getElementById('count-pegawai-musholla').innerText = Object.keys(dataPegawaiMushollaGlobal).length;
+            if(currentSystem === 'musholla') { renderPegawai(); updateDropdown(); renderRekap(); }
+            updateDashboardStats();
+        });
+        onValue(ref(db, 'absensi_musholla'), (snap) => {
+            if(currentSystem === 'musholla') dataAbsensi = snap.val() || {};
+            dataAbsensiMushollaGlobal = snap.val() || {};
+            if(currentSystem === 'musholla') { renderDaftarHarian(); renderRekap(); }
+            updateDashboardStats();
+        });
+        onValue(ref(db, 'history_payroll_musholla'), (snap) => {
+            histPayrollMusholla = snap.val() || {};
+            if(currentSystem === 'musholla') { renderHistory(histPayrollMusholla); updateAnalytics(histPayrollMusholla); }
+            renderCombinedChart();
+        });
+        onValue(ref(db, 'total_pengeluaran_musholla'), (snap) => {
+            histExpCloudMusholla = snap.val() || {};
+            renderCombinedChart();
+        });
+        onValue(ref(db, 'pengeluaran_musholla'), (snap) => {
+            if(currentSystem === 'musholla') { dataExp = snap.val() || {}; renderExp(); }
+        });
+    }
+
+    let dataPegawaiRumahGlobal = {}; let dataPegawaiMushollaGlobal = {};
+    let dataAbsensiRumahGlobal = {}; let dataAbsensiMushollaGlobal = {};
+
+    function updateDashboardStats() {
+        const tgl = document.getElementById('absen-tgl').value;
+        const harianRumah = dataAbsensiRumahGlobal[tgl] || {};
+        const harianMusholla = dataAbsensiMushollaGlobal[tgl] || {};
+        
+        let hadirR = 0; Object.keys(harianRumah).forEach(k => { if(harianRumah[k] !== 'A') hadirR++; });
+        let hadirM = 0; Object.keys(harianMusholla).forEach(k => { if(harianMusholla[k] !== 'A') hadirM++; });
+        
+        document.getElementById('stat-active-rumah').innerText = hadirR;
+        document.getElementById('stat-active-musholla').innerText = hadirM;
+    }
+
+    function renderCombinedChart() {
+        const ctx = document.getElementById('combinedChart').getContext('2d');
+        const now = new Date(); const y = now.getFullYear().toString();
+        const labels = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agt","Sep","Okt","Nov","Des"];
+        
+        let combinedData = Array(12).fill(0);
+        
+        for(let i=1; i<=12; i++) {
+            const m = String(i).padStart(2, '0');
+            const p1R = (histPayroll[y] && histPayroll[y][m]) ? (histPayroll[y][m].p1 || 0) + (histPayroll[y][m].p2 || 0) : 0;
+            const p1M = (histPayrollMusholla[y] && histPayrollMusholla[y][m]) ? (histPayrollMusholla[y][m].p1 || 0) + (histPayrollMusholla[y][m].p2 || 0) : 0;
+            const bR = (histExpCloud[y] && histExpCloud[y][m]) ? histExpCloud[y][m] : 0;
+            const bM = (histExpCloudMusholla[y] && histExpCloudMusholla[y][m]) ? histExpCloudMusholla[y][m] : 0;
+            combinedData[i-1] = p1R + p1M + bR + bM;
+        }
+
+        if (combinedChart) combinedChart.destroy();
+        combinedChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Biaya (Payroll + Pembangunan)',
+                    data: combinedData,
+                    backgroundColor: '#20a8d8',
+                    borderColor: '#20a8d8',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { callback: (v) => 'Rp ' + v.toLocaleString() } } }
+            }
+        });
+    }
+
+    window.saveExp = async () => {
+        const paths = getPaths();
+        const tgl = document.getElementById('exp-tgl').value;
+        const nama = document.getElementById('exp-nama').value;
+        const qty = document.getElementById('exp-qty').value;
+        const sat = document.getElementById('exp-satuan').value;
+        const tot = document.getElementById('exp-total').value;
+        const status = document.getElementById('exp-status').value;
+        if(!tgl || !nama || !tot) return alert("Isi data pengeluaran!");
+        overlay.style.visibility = 'visible';
+        await push(ref(db, paths.pengeluaran), { tgl, nama, qty, sat: parseInt(sat), tot: parseInt(tot), status });
+        document.getElementById('exp-nama').value = ""; document.getElementById('exp-total').value = "";
+        overlay.style.visibility = 'hidden';
+    };
+
+    window.hapusExp = (id) => { 
+        if(confirm("Hapus item?")) remove(ref(db, `${getPaths().pengeluaran}/${id}`)); 
+    };
+
+    function renderExp() {
+        const mm = document.getElementById('filter-exp-month').value;
+        const yyyy = document.getElementById('filter-exp-year').value;
+        let html = ""; 
+        let totalFiltered = 0; 
+        let chartMap = {};
+
+        const sortedKeys = Object.keys(dataExp).sort((a, b) => {
+            return new Date(dataExp[b].tgl) - new Date(dataExp[a].tgl);
+        });
+
+        sortedKeys.forEach(id => {
+            const item = dataExp[id];
+            const itemDate = new Date(item.tgl);
+            const itemMM = String(itemDate.getMonth() + 1).padStart(2, '0');
+            const itemYY = itemDate.getFullYear().toString();
+            
+            // Kolom Status (Badge)
+            const st = item.status || "LUNAS";
+            const badgeClass = st === "LUNAS" ? "badge-lunas" : "badge-pending";
+
+            if(itemMM === mm && itemYY === yyyy) {
+                totalFiltered += item.tot;
+                html += `<tr>
+                    <td>${item.tgl}</td>
+                    <td style="text-align:left;">${item.nama}</td>
+                    <td>${item.qty}</td>
+                    <td>${parseInt(item.sat).toLocaleString()}</td>
+                    <td style="font-weight:bold;">${parseInt(item.tot).toLocaleString()}</td>
+                    <td><span class="badge ${badgeClass}">${st}</span></td>
+                    <td><button onclick="hapusExp('${id}')" style="color:red; border:none; background:none; cursor:pointer;">X</button></td>
+                </tr>`;
+            }
+            
+            if(itemYY === yyyy) chartMap[itemMM] = (chartMap[itemMM] || 0) + item.tot;
+        });
+
+        currentExpTotal = totalFiltered;
+        document.getElementById('exp-body').innerHTML = html || '<tr><td colspan="7">Belum ada data di bulan ini</td></tr>';
+        document.getElementById('stat-exp-month').innerText = `Rp ${totalFiltered.toLocaleString()}`;
+        
+        let grandTotalTable = Object.values(dataExp).reduce((acc, curr) => acc + curr.tot, 0);
+        document.getElementById('exp-footer').innerHTML = `<tr><td colspan="4" style="text-align:right;">TOTAL SEMUA DATA:</td><td colspan="2" style="background:#f86c6b; color:white; font-weight:bold;">Rp ${grandTotalTable.toLocaleString()}</td><td></td></tr>`;
+        
+        let chartArr = Array(12).fill(0);
+        Object.keys(chartMap).forEach(m => chartArr[parseInt(m)-1] = chartMap[m]);
+        renderExpChart(chartArr);
+    }
+
+    function renderExpChart(data) {
+        const ctx = document.getElementById('expChart').getContext('2d');
+        if (expChart) expChart.destroy();
+        expChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agt","Sep","Okt","Nov","Des"],
+                datasets: [{ label: `Pengeluaran ${currentSystem.toUpperCase()}`, data: data, backgroundColor: '#f86c6b' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    window.openModalCloudExp = () => {
+        const now = new Date();
+        const yearSelect = document.getElementById('cloud-exp-year');
+        const currentYear = now.getFullYear();
+        yearSelect.innerHTML = "";
+        for(let i = currentYear - 1; i <= currentYear + 1; i++) {
+            const opt = document.createElement('option');
+            opt.value = i; opt.innerText = i;
+            if(i === currentYear) opt.selected = true;
+            yearSelect.appendChild(opt);
+        }
+        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        document.getElementById('cloud-exp-month').value = currentMonth;
+        document.getElementById('modal-cloud-exp').style.display = 'flex';
+    };
+
+    window.executeCloudExp = async () => {
+        const paths = getPaths();
+        const year = document.getElementById('cloud-exp-year').value;
+        const month = document.getElementById('cloud-exp-month').value;
+        let selectedTotal = 0;
+        Object.values(dataExp).forEach(item => {
+            const d = new Date(item.tgl);
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const y = d.getFullYear().toString();
+            if(m === month && y === year) selectedTotal += item.tot;
+        });
+
+        if(confirm(`Simpan Total Pengeluaran ${currentSystem.toUpperCase()} Periode ${month}-${year} sebesar Rp ${selectedTotal.toLocaleString()} ke Cloud?`)) {
+            document.getElementById('modal-cloud-exp').style.display = 'none';
+            overlay.style.visibility = 'visible';
+            await set(ref(db, `${paths.totalExp}/${year}/${month}`), selectedTotal);
+            overlay.style.visibility = 'hidden';
+            alert("✅ Berhasil disimpan!");
+        }
+    };
+
+    window.downloadPDFExp = () => {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+        doc.text(`REKAP PENGELUARAN ${currentSystem.toUpperCase()}`, 105, 15, { align: "center" });
+        doc.autoTable({ html: '#table-exp-main', startY: 20, theme: 'grid' });
+        doc.save(`Pengeluaran_${currentSystem}.pdf`);
+    };
+
+    window.simpanPayrollCloud = async () => {
+        const paths = getPaths();
+        const now = new Date(); const yyyy = now.getFullYear(); const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const periode = document.getElementById('filter-periode').value;
+        const total = Math.floor(currentGrandTotal);
+        if (total <= 0) return alert("Gagal: Total gaji Rp 0.");
+        if (confirm(`Simpan Payroll ${currentSystem.toUpperCase()} Periode ${periode} senilai Rp ${total.toLocaleString()}?`)) {
+            overlay.style.visibility = 'visible';
+            await set(ref(db, `${paths.history}/${yyyy}/${mm}/p${periode}`), total);
+            overlay.style.visibility = 'hidden'; alert("✅ Berhasil disimpan!");
+        }
+    };
+
+    window.tambahPegawai = async () => {
+        const paths = getPaths();
+        const nama = document.getElementById('p-nama').value;
+        const status = document.getElementById('p-status').value;
+        const gaji = document.getElementById('p-gaji').value;
+        if(!nama || !gaji) return alert("Data belum lengkap!");
+        overlay.style.visibility = 'visible';
+        await push(ref(db, paths.pegawai), { nama, status, gaji: parseFloat(gaji) });
+        document.getElementById('p-nama').value = ''; document.getElementById('p-gaji').value = '';
+        overlay.style.visibility = 'hidden';
+    };
+
+    window.hapusPegawai = (id) => { if(confirm("Hapus?")) remove(ref(db, `${getPaths().pegawai}/${id}`)); };
+
+    window.catatKehadiran = async () => {
+        const paths = getPaths();
+        const tgl = document.getElementById('absen-tgl').value;
+        const pId = document.getElementById('absen-pegawai').value;
+        const status = document.getElementById('absen-status').value;
+        if(!tgl || !pId) return alert("Lengkapi input!");
+        overlay.style.visibility = 'visible';
+        await set(ref(db, `${paths.absensi}/${tgl}/${pId}`), status);
+        overlay.style.visibility = 'hidden';
+    };
+
+    function renderPegawai() {
+        const html = Object.keys(dataPegawai).map(id => `<tr><td><code style="color:#20a8d8;">#${id.substring(1, 5)}</code></td><td style="text-align: left; font-weight: bold;">${dataPegawai[id].nama}</td><td><span style="background:#f0f3f5; padding:2px 5px; border-radius:3px; font-size:11px;">${dataPegawai[id].status}</span></td><td>Rp ${dataPegawai[id].gaji.toLocaleString()}</td><td><button onclick="hapusPegawai('${id}')" style="color:#f86c6b; background:none; border:none; cursor:pointer;">Hapus</button></td></tr>`).join('');
+        document.getElementById('list-pegawai').innerHTML = html || '<tr><td colspan="5">Kosong</td></tr>';
+    }
+
+    function updateDropdown() {
+        const html = Object.keys(dataPegawai).map(id => `<option value="${id}">${dataPegawai[id].nama}</option>`).join('');
+        document.getElementById('absen-pegawai').innerHTML = html;
+        document.getElementById('print-range').innerHTML = '<option value="all">Semua</option>' + html;
+    }
+
+    function renderDaftarHarian() {
+        const tgl = document.getElementById('absen-tgl').value;
+        document.getElementById('judul-harian').innerText = "Log Absensi: " + tgl;
+        const harian = dataAbsensi[tgl] || {};
+        const html = Object.keys(harian).map(pId => {
+            const peg = dataPegawai[pId]; if(!peg) return "";
+            return `<tr><td style="text-align: left;">${peg.nama}</td><td>${harian[pId]}</td><td><button onclick="hapusAbsen('${tgl}', '${pId}')" style="color:#f86c6b; border:none; background:none; cursor:pointer;">X</button></td></tr>`;
+        }).join('');
+        document.getElementById('list-harian').innerHTML = html;
+        updateDashboardStats();
+    }
+
+    window.hapusAbsen = (tgl, pId) => { if(confirm("Hapus?")) remove(ref(db, `${getPaths().absensi}/${tgl}/${pId}`)); };
+
+    function renderRekap() {
+        const now = new Date(); const yyyy = now.getFullYear(); const mm = String(now.getMonth() + 1).padStart(2, '0');
+        let startDay = parseInt(document.getElementById('custom-start').value) || 1;
+        let endDay = parseInt(document.getElementById('custom-end').value) || 31;
+        document.getElementById('label-periode-tgl').innerText = `${startDay}-${endDay} ${now.toLocaleString('id-ID', {month:'short'})} ${yyyy}`;
+        const header = document.getElementById('hari-header');
+        let headerHtml = ""; let countCol = 0;
+        for(let i = startDay; i <= endDay; i++) { headerHtml += `<th>${i}</th>`; countCol++; }
+        headerHtml += "<th>H</th><th>½</th><th>A</th>";
+        header.innerHTML = headerHtml;
+        document.getElementById('th-tanggal-range').colSpan = countCol;
+        let rekapHtml = ""; let payrollHtml = ""; let grandTotalGaji = 0;
+        Object.keys(dataPegawai).forEach(pId => {
+            let row = `<tr><td style="text-align: left; font-weight:bold;">${dataPegawai[pId].nama}</td><td>${dataPegawai[pId].status}</td>`;
+            let stats = { H:0, SH:0, A:0 }; let poin = 0;
+            for(let d = startDay; d <= endDay; d++) {
+                const tglKey = `${yyyy}-${mm}-${String(d).padStart(2, '0')}`;
+                const s = (dataAbsensi[tglKey] && dataAbsensi[tglKey][pId]) ? dataAbsensi[tglKey][pId] : '-';
+                if(stats.hasOwnProperty(s)) stats[s]++;
+                if(s === 'H') poin += 1; if(s === 'SH') poin += 0.5;
+                row += `<td>${s === 'SH' ? '½' : s}</td>`;
+            }
+            const totalGajiPeriode = dataPegawai[pId].gaji * poin; grandTotalGaji += totalGajiPeriode;
+            rekapHtml += row + `<td>${stats.H}</td><td>${stats.SH}</td><td>${stats.A}</td></tr>`;
+            payrollHtml += `<tr><td style="text-align: left; font-weight:bold;">${dataPegawai[pId].nama}</td><td>${dataPegawai[pId].status}</td><td>Rp ${dataPegawai[pId].gaji.toLocaleString()}</td><td>${poin}</td><td style="font-weight:bold;">Rp ${Math.floor(totalGajiPeriode).toLocaleString()}</td></tr>`;
+        });
+        currentGrandTotal = grandTotalGaji; 
+        document.getElementById('rekap-body').innerHTML = rekapHtml;
+        document.getElementById('payroll-body').innerHTML = payrollHtml;
+        document.getElementById('payroll-footer').innerHTML = `<tr><td colspan="4" style="text-align:right;">TOTAL GAJI:</td><td style="background:#4dbd74; color:white; font-weight:bold;">Rp ${Math.floor(grandTotalGaji).toLocaleString()}</td></tr>`;
+    }
+
+    async function updateAnalytics(historyData) {
+        const now = new Date(); const year = now.getFullYear().toString();
+        let totalYear = 0; let countMonths = 0; let chartData = Array(12).fill(0);
+        if (historyData[year]) {
+            Object.keys(historyData[year]).forEach(m => {
+                const val = (historyData[year][m].p1 || 0) + (historyData[year][m].p2 || 0);
+                totalYear += val; chartData[parseInt(m) - 1] = val; countMonths++;
+            });
+        }
+        document.getElementById('stat-total-tahun').innerText = `Rp ${totalYear.toLocaleString()}`;
+        document.getElementById('stat-avg-bulan').innerText = `Rp ${(countMonths ? Math.floor(totalYear/countMonths) : 0).toLocaleString()}`;
+        renderChart(chartData);
+    }
+
+    function renderChart(data) {
+        const ctx = document.getElementById('payrollChart').getContext('2d');
+        if (payrollChart) payrollChart.destroy();
+        payrollChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agt","Sep","Okt","Nov","Des"],
+                datasets: [{ label: 'Payroll', data: data, borderColor: '#20a8d8', backgroundColor: 'rgba(32,168,216,0.1)', fill: true, tension: 0.3 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
+
+    window.printThermal = () => { document.getElementById('modal-print').style.display = 'flex'; };
+
+    window.executeThermalToPDF = async () => {
+        const { jsPDF } = window.jspdf;
+        const range = document.getElementById('print-range').value;
+        const periodeTxt = document.getElementById('label-periode-tgl').innerText;
+        const now = new Date(); const yyyy = now.getFullYear(); const mm = String(now.getMonth() + 1).padStart(2, '0');
+        let startDay = parseInt(document.getElementById('custom-start').value) || 1;
+        let endDay = parseInt(document.getElementById('custom-end').value) || 31;
+        document.getElementById('modal-print').style.display = 'none';
+        overlay.style.visibility = 'visible';
+        const ids = range === "all" ? Object.keys(dataPegawai) : [range];
+        for (const pId of ids) {
+            const p = dataPegawai[pId]; let stats = { H: 0, SH: 0, A: 0 }; let poin = 0;
+            for(let d = startDay; d <= endDay; d++) {
+                const tglKey = `${yyyy}-${mm}-${String(d).padStart(2, '0')}`;
+                const s = (dataAbsensi[tglKey] && dataAbsensi[tglKey][pId]) ? dataAbsensi[tglKey][pId] : '-';
+                if(stats.hasOwnProperty(s)) stats[s]++;
+                if(s === 'H') poin += 1; if(s === 'SH') poin += 0.5;
+            }
+            if(poin === 0) continue;
+            const doc = new jsPDF({ unit: 'mm', format: [48, 100] });
+            doc.setFont("courier", "bold"); doc.setFontSize(10);
+            doc.text("PEMBANGUNAN", 24, 10, { align: "center" }); doc.text("SLIP GAJI", 24, 14, { align: "center" });
+            doc.setFontSize(8); doc.text("--------------------------------", 24, 18, { align: "center" });
+            doc.text(`Nama    : ${p.nama}`, 5, 24); doc.text(`Status  : ${p.status || '-'}`, 5, 28);
+            doc.setFontSize(7); doc.text(`Periode : ${periodeTxt}`, 5, 32);
+            doc.setFontSize(8); doc.text("--------------------------------", 24, 38, { align: "center" });
+            doc.text(`Hadir (1) : ${stats.H} x ${p.gaji.toLocaleString()}`, 5, 44);
+            doc.text(`1/2 Hari  : ${stats.SH} x ${(p.gaji/2).toLocaleString()}`, 5, 48);
+            doc.text(`Alpa (0)  : ${stats.A}`, 5, 52);
+            doc.text("--------------------------------", 24, 58, { align: "center" });
+            doc.setFontSize(11); doc.text(`TOTAL: Rp ${Math.floor(p.gaji * poin).toLocaleString('id-ID')}`, 24, 65, { align: "center" });
+            doc.setFontSize(8); doc.text("--------------------------------", 24, 72, { align: "center" });
+            doc.text("Terima Kasih", 24, 78, { align: "center" });
+            doc.save(`Slip_${p.nama}_${yyyy}_${mm}.pdf`);
+        }
+        overlay.style.visibility = 'hidden';
+    };
+
+    function renderHistory(data) {
+        let html = ""; const years = Object.keys(data).sort((a,b) => b-a);
+        years.forEach(y => {
+            const months = Object.keys(data[y]).sort((a,b) => b-a);
+            months.forEach(m => {
+                const item = data[y][m]; const p1 = item.p1 || 0; const p2 = item.p2 || 0;
+                html += `<tr><td style="font-weight:bold;">${m}-${y}</td><td>Rp ${p1.toLocaleString()}</td><td>Rp ${p2.toLocaleString()}</td><td style="color:#4dbd74; font-weight:bold;">Rp ${(p1+p2).toLocaleString()}</td></tr>`;
+            });
+        });
+        document.getElementById('history-body').innerHTML = html;
+    }
+
+    window.downloadPDFAbsen = () => {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4');
+        doc.text(`LAPORAN ABSENSI - ${currentSystem.toUpperCase()}`, 14, 15);
+        doc.autoTable({ html: '#table-rekap-main', startY: 20, theme: 'grid', styles: { fontSize: 7 } });
+        doc.save(`Absen_${currentSystem}.pdf`);
+    };
+
+    window.downloadPDFGaji = () => {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+        doc.text(`LAPORAN PAYROLL - ${currentSystem.toUpperCase()}`, 105, 15, { align: "center" });
+        doc.autoTable({ html: '#table-gaji-main', startY: 20, theme: 'grid' });
+        doc.save(`Payroll_${currentSystem}.pdf`);
+    };
+
+    window.showSection = (id) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        const navId = `nav-${id.split('-')[0]}-${currentSystem}`;
+        const activeBtn = document.getElementById(navId);
+        if(activeBtn) activeBtn.classList.add('active');
+    };
+
+    document.getElementById('btn-tambah').onclick = window.tambahPegawai;
+    document.getElementById('btn-absen').onclick = window.catatKehadiran;
+    document.getElementById('absen-tgl').onchange = renderDaftarHarian;
+    document.getElementById('custom-start').oninput = renderRekap;
+    document.getElementById('custom-end').oninput = renderRekap;
+    document.getElementById('btn-simpan-payroll').onclick = window.simpanPayrollCloud;
+    document.getElementById('btn-login').onclick = window.prosesLogin;
+    document.getElementById('btn-save-exp').onclick = window.saveExp;
+    document.getElementById('btn-pdf-exp').onclick = window.downloadPDFExp;
+    document.getElementById('filter-periode').onchange = (e) => {
+        if(e.target.value === "1") { document.getElementById('custom-start').value = 1; document.getElementById('custom-end').value = 15; }
+        else { document.getElementById('custom-start').value = 16; document.getElementById('custom-end').value = 31; }
+        renderRekap();
+    };
+</script>
+</body>
+</html>
