@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Absensi NoxPay</title>
+    <title>Scanner Absensi Digital</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -15,7 +15,6 @@
         h2 { margin-bottom: 5px; color: #20a8d8; }
         p { font-size: 12px; color: #aaa; margin-bottom: 15px; }
         #result-name { font-size: 18px; font-weight: bold; color: #fff; margin-top: 10px; }
-        button { cursor: pointer; padding: 10px; border-radius: 8px; border: none; background: #20a8d8; color: white; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -55,6 +54,17 @@
     const db = getDatabase(app);
     const beep = document.getElementById('beepAudio');
 
+    // Fungsi Suara (Text-to-Speech)
+    function speakName(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID'; // Set bahasa Indonesia
+            utterance.rate = 1.0;     // Kecepatan bicara
+            utterance.pitch = 1.0;    // Nada suara
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
     function getToday() {
         const d = new Date();
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -73,16 +83,17 @@
         resultLabel.innerText = "Mengecek Data...";
 
         try {
-            // 1. Cek apakah sudah absen hari ini (Fitur 1 QR 1 Kali sehari)
+            // 1. Cek apakah sudah absen hari ini
             const checkAbsen = await get(ref(db, `absensi/${today}/${uid}`));
             if (checkAbsen.exists()) {
+                speakName("Anda sudah absen hari ini");
                 Swal.fire({ title: 'Sudah Absen!', text: 'Pegawai ini sudah melakukan absensi hari ini.', icon: 'warning' });
                 resultLabel.innerText = "Sudah Absen Hari Ini";
                 setTimeout(() => { isProcessing = false; }, 3000);
                 return;
             }
 
-            // 2. Cari data pegawai di folder 'pegawai' atau 'pegawai_musholla'
+            // 2. Cari data pegawai
             const paths = ['pegawai', 'pegawai_musholla'];
             let userData = null;
 
@@ -95,10 +106,11 @@
             }
 
             if (userData) {
-                // Bunyi Beep Berhasil
+                // Bunyi Beep & Suara Nama
                 beep.play().catch(e => console.log("Audio play blocked"));
+                speakName(`Halo ${userData.nama}, berhasil absen.`);
 
-                // Simpan Absensi
+                // Simpan Absensi ke Firebase
                 const updates = {};
                 updates[`absensi/${today}/${uid}`] = "H";
                 await update(ref(db), updates);
@@ -113,6 +125,7 @@
 
                 resultLabel.innerText = userData.nama;
             } else {
+                speakName("ID tidak terdaftar");
                 Swal.fire({ title: 'Gagal!', text: 'ID Pegawai tidak terdaftar.', icon: 'error' });
                 resultLabel.innerText = "ID Tidak Dikenal";
             }
@@ -127,7 +140,6 @@
         }, 3000);
     }
 
-    // Inisialisasi Scanner dengan penanganan error browser
     const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
         fps: 10, 
         qrbox: { width: 250, height: 250 },
@@ -135,7 +147,7 @@
     });
 
     html5QrcodeScanner.render(onScanSuccess, (err) => {
-        // Abaikan error scan gagal baca (biar console gak penuh)
+        // Biarkan kosong untuk menghindari log error saat scan belum fokus
     });
 </script>
 </body>
