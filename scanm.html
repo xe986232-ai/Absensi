@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Absensi Digital</title>
+    <title>Scanner Absensi Musholla</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -20,7 +20,7 @@
 <body>
 
     <div class="container">
-        <h2>Absensi Digital</h2>
+        <h2>Absensi Musholla</h2>
         <p>Arahkan Kode QR Pegawai ke Kamera</p>
         
         <div id="reader"></div>
@@ -57,10 +57,12 @@
     // Fungsi Suara (Text-to-Speech)
     function speakName(text) {
         if ('speechSynthesis' in window) {
+            // Membatalkan suara yang sedang berjalan agar tidak tumpang tindih
+            window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'id-ID'; // Set bahasa Indonesia
-            utterance.rate = 1.0;     // Kecepatan bicara
-            utterance.pitch = 1.0;    // Nada suara
+            utterance.lang = 'id-ID';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
             window.speechSynthesis.speak(utterance);
         }
     }
@@ -83,17 +85,17 @@
         resultLabel.innerText = "Mengecek Data...";
 
         try {
-            // 1. Cek apakah sudah absen hari ini
+            // 1. Cek di path absensi_musholla
             const checkAbsen = await get(ref(db, `absensi_musholla/${today}/${uid}`));
             if (checkAbsen.exists()) {
                 speakName("Anda sudah absen hari ini");
-                Swal.fire({ title: 'Sudah Absen!', text: 'Pegawai ini sudah melakukan absensi hari ini.', icon: 'warning' });
-                resultLabel.innerText = "Sudah Absen Hari Ini";
+                Swal.fire({ title: 'Sudah Absen!', text: 'Pegawai ini sudah melakukan absensi hari ini di Musholla.', icon: 'warning' });
+                resultLabel.innerText = "Sudah Absen";
                 setTimeout(() => { isProcessing = false; }, 3000);
                 return;
             }
 
-            // 2. Cari data pegawai
+            // 2. Cari data pegawai di database
             const paths = ['pegawai', 'pegawai_musholla'];
             let userData = null;
 
@@ -108,16 +110,16 @@
             if (userData) {
                 // Bunyi Beep & Suara Nama
                 beep.play().catch(e => console.log("Audio play blocked"));
-                speakName(`Halo ${userData.nama}, berhasil absen.`);
+                speakName(`Halo ${userData.nama}, berhasil absen musholla.`);
 
-                // Simpan Absensi ke Firebase
+                // 3. Simpan ke path absensi_musholla (DI SINI PERUBAHAN UTAMANYA)
                 const updates = {};
-                updates[`absensi/${today}/${uid}`] = "H";
+                updates[`absensi_musholla/${today}/${uid}`] = "H";
                 await update(ref(db), updates);
 
                 Swal.fire({
-                    title: 'Berhasil Absen!',
-                    text: `Halo, ${userData.nama}. Selamat bekerja!`,
+                    title: 'Berhasil!',
+                    text: `Halo, ${userData.nama}. Absen Musholla tercatat.`,
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false
@@ -126,7 +128,7 @@
                 resultLabel.innerText = userData.nama;
             } else {
                 speakName("ID tidak terdaftar");
-                Swal.fire({ title: 'Gagal!', text: 'ID Pegawai tidak terdaftar.', icon: 'error' });
+                Swal.fire({ title: 'Gagal!', text: 'ID Pegawai tidak ditemukan.', icon: 'error' });
                 resultLabel.innerText = "ID Tidak Dikenal";
             }
         } catch (error) {
@@ -146,9 +148,7 @@
         aspectRatio: 1.0
     });
 
-    html5QrcodeScanner.render(onScanSuccess, (err) => {
-        // Biarkan kosong untuk menghindari log error saat scan belum fokus
-    });
+    html5QrcodeScanner.render(onScanSuccess, (err) => {});
 </script>
 </body>
 </html>
