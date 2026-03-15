@@ -2,288 +2,201 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasir System - Rizfx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rizfx Kasir Mobile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
-            --bg-body: #ebedef;
-            --sidebar-bg: #2f353a;
-            --sidebar-hover: #202328;
+            --bg-body: #f4f7f6;
             --header-bg: #20a8d8;
-            --white: #ffffff;
-            --text-main: #3e5569;
-            --border-color: #c8ced3;
+            --text-main: #2f353a;
+            --border-color: #d1d4d7;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-body);
-            margin: 0;
-            display: flex;
-            min-height: 100vh;
             color: var(--text-main);
+            margin: 0;
+            padding-bottom: 70px;
         }
 
-        aside {
-            width: 230px;
-            background: var(--sidebar-bg);
-            color: #fff;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-brand {
-            padding: 15px 20px;
-            background: rgba(0,0,0,0.2);
-            font-size: 20px;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        nav button {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: #e4e7ea;
-            padding: 12px 20px;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-
-        nav button:hover, nav button.active {
-            background: var(--sidebar-hover);
-            color: #fff;
-        }
-
-        main { flex: 1; display: flex; flex-direction: column; overflow-x: hidden; }
         header {
             background: var(--header-bg);
-            padding: 10px 20px;
+            padding: 12px 15px;
             color: white;
-            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 50;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .content-body { padding: 20px; }
+        .container { padding: 12px; }
+
         .card {
             background: white;
-            border-radius: 4px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .card-header {
             padding: 10px 15px;
-            background: #f0f3f5;
+            background: #f8f9fa;
             border-bottom: 1px solid var(--border-color);
-            font-weight: bold;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 13px;
             display: flex;
             align-items: center;
             gap: 8px;
+            text-transform: uppercase;
         }
 
-        .card-body { padding: 15px; }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
+        .card-body { padding: 12px; }
+
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; font-size: 13px; border-collapse: collapse; }
+        td { padding: 10px; border-bottom: 1px solid #edf0f2; }
+
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            display: flex;
+            border-top: 1px solid var(--border-color);
+            z-index: 100;
         }
 
-        input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 2px;
-            font-size: 13px;
-        }
-
-        .btn {
-            padding: 8px 15px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 13px;
-            border: none;
-            font-weight: bold;
-            display: inline-flex;
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            font-size: 10px;
+            color: #73818f;
+            gap: 4px;
         }
 
-        .btn-primary { background: #20a8d8; color: white; }
-        .btn-success { background: #4dbd74; color: white; }
-        .btn-danger { background: #f86c6b; color: white; }
+        .tab-item.active { color: var(--header-bg); }
+        .tab-item svg { width: 22px; height: 22px; }
+
+        /* Scanner Box UI */
+        #reader {
+            width: 100% !important;
+            border: none !important;
+            background: #000;
+        }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            margin-top: 10px;
+        /* Hilangkan elemen bawaan library yang mengganggu */
+        #reader__dashboard_section_csr span { display: none; }
+        #reader__camera_selection { 
+            width: 100%; 
+            padding: 8px; 
+            margin-bottom: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px;
         }
-
-        th { background: #f0f3f5; padding: 10px; border: 1px solid var(--border-color); }
-        td { padding: 8px; border: 1px solid var(--border-color); text-align: center; }
 
         .section { display: none; }
         .section.active { display: block; }
-
-        #reader {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto 20px auto;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        svg { width: 18px; height: 18px; fill: currentColor; }
+        svg { width: 20px; height: 20px; fill: currentColor; }
     </style>
 </head>
 <body>
 
-<aside>
-    <div class="sidebar-brand">RIZFX KASIR</div>
-    <nav>
-        <button onclick="showSection('kasir-main')" id="nav-kasir" class="active">
-            <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-            Mesin Kasir
-        </button>
-        <button onclick="showSection('input-barang')" id="nav-input">
-            <svg viewBox="0 0 24 24"><path d="M20 13h-7v7h-2v-7H4v-2h7V4h2v7h7v2z"/></svg>
-            Input Barang
-        </button>
-        <button onclick="location.reload()">
-            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-            Refresh
-        </button>
-    </nav>
-</aside>
+<header>
+    <div style="font-weight: 800; letter-spacing: 1px;">RIZFX MOBILE</div>
+    <div id="status-online" style="font-size: 10px; background: #4dbd74; padding: 2px 8px; border-radius: 10px;">ONLINE</div>
+</header>
 
-<main>
-    <header>
-        <div id="header-title">Mesin Kasir</div>
-        <div style="font-size: 12px; opacity: 0.8;">Rizfx System v2.0</div>
-    </header>
+<div class="container">
     
-    <div class="content-body">
-        
-        <div id="kasir-main" class="section active">
-            
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24"><path d="M4 4h7V2H4c-1.1 0-2 .9-2 2v7h2V4zm6 9l-4 5h12l-3-4-2.03 2.71L10 13zm7-11h-7v2h7v7h2V4c0-1.1-.9-2-2-2zm2 15h-2v7h-7v2h7c1.1 0 2-.9 2-2v-7zM4 13H2v7c0 1.1.89 2 2 2h7v-2H4v-7z"/></svg>
-                    Scanner Kamera & Input
-                </div>
-                <div class="card-body">
-                    <div id="reader"></div>
-                    <div class="mt-4 flex gap-2">
-                        <input type="text" id="scan-input" placeholder="Masukkan ID Barang secara manual..." class="flex-1">
-                        <button onclick="startScanner()" class="btn btn-primary" id="btn-camera">
-                            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                            Aktifkan Kamera
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-                    Daftar Belanja
-                </div>
-                <div class="card-body">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="text-align: left;">Nama Barang</th>
-                                <th>Harga Satuan</th>
-                                <th>Jumlah</th>
-                                <th>Subtotal</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cart-table"></tbody>
-                        <tfoot>
-                            <tr style="background: #f0f3f5; font-weight: bold; font-size: 18px;">
-                                <td colspan="3" style="text-align: right;">TOTAL:</td>
-                                <td id="total-bayar" style="color: #20a8d8;">Rp 0</td>
-                                <td>
-                                    <button onclick="resetCart()" class="btn btn-danger">
-                                        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                                        Kosongkan
-                                    </button>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
+    <div id="kasir-main" class="section active">
+        <div class="card">
+            <div id="reader"></div>
+            <div class="card-body">
+                <div class="flex gap-2">
+                    <input type="text" id="scan-input" placeholder="Ketik ID Manual..." class="flex-1 border p-2 rounded-lg text-sm">
+                    <button onclick="startScanner()" class="bg-blue-500 text-white px-4 rounded-lg flex items-center gap-1">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h7V2H4c-1.1 0-2 .9-2 2v7h2V4zm6 9l-4 5h12l-3-4-2.03 2.71L10 13zm7-11h-7v2h7v7h2V4c0-1.1-.9-2-2-2zm2 15h-2v7h-7v2h7c1.1 0 2-.9 2-2v-7zM4 13H2v7c0 1.1.89 2 2 2h7v-2H4v-7z"/></svg>
+                        <span class="text-xs">SCAN</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div id="input-barang" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-                    Tambah Master Barang
-                </div>
-                <div class="card-body">
-                    <div class="form-grid">
-                        <div>
-                            <label style="font-size: 11px; font-weight: bold;">ID Barang / QR Code</label>
-                            <input type="text" id="db-id" placeholder="Scan atau ketik ID...">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: bold;">Nama Barang</label>
-                            <input type="text" id="db-nama" placeholder="Contoh: Semen Gresik">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: bold;">Harga (Rp)</label>
-                            <input type="number" id="db-harga" placeholder="75000">
-                        </div>
-                        <button class="btn btn-success" id="btn-save-db">
-                            <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
-                            Simpan Ke Database
-                        </button>
-                    </div>
-                </div>
+        <div class="card">
+            <div class="card-header">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                Daftar Belanja
             </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
-                    Katalog Barang Tersimpan
+            <div class="table-responsive">
+                <table>
+                    <tbody id="cart-table"></tbody>
+                </table>
+            </div>
+            <div class="p-4 bg-gray-50 flex justify-between items-center border-t">
+                <div>
+                    <div style="font-size: 11px; color: #777;">TOTAL</div>
+                    <div id="total-bayar" style="font-size: 20px; font-weight: 800; color: #20a8d8;">Rp 0</div>
                 </div>
-                <div class="card-body">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID Barang</th>
-                                <th style="text-align: left;">Nama Barang</th>
-                                <th>Harga</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="master-barang-table"></tbody>
-                    </table>
-                </div>
+                <button onclick="resetCart()" class="bg-red-500 text-white p-3 rounded-xl">
+                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                </button>
             </div>
         </div>
-
     </div>
-</main>
+
+    <div id="input-barang" class="section">
+        <div class="card">
+            <div class="card-header">Tambah Master</div>
+            <div class="card-body flex flex-col gap-3">
+                <input type="text" id="db-id" placeholder="ID Barang" class="border p-3 rounded-lg text-sm">
+                <input type="text" id="db-nama" placeholder="Nama Barang" class="border p-3 rounded-lg text-sm">
+                <input type="number" id="db-harga" placeholder="Harga" class="border p-3 rounded-lg text-sm">
+                <button id="btn-save-db" class="bg-green-500 text-white p-3 rounded-lg font-bold flex justify-center gap-2">
+                    <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                    SIMPAN
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header text-xs">Katalog Barang</div>
+            <div class="table-responsive">
+                <table>
+                    <tbody id="master-barang-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="tab-bar">
+    <div class="tab-item active" onclick="showSection('kasir-main')" id="tab-kasir">
+        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        <span>Kasir</span>
+    </div>
+    <div class="tab-item" onclick="showSection('input-barang')" id="tab-input">
+        <svg viewBox="0 0 24 24"><path d="M20 13h-7v7h-2v-7H4v-2h7V4h2v7h7v2z"/></svg>
+        <span>Database</span>
+    </div>
+    <div class="tab-item" onclick="location.reload()">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        <span>Refresh</span>
+    </div>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -302,57 +215,73 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let cart = []; // Array untuk menyimpan objek {id, nama, harga, qty}
+    let cart = [];
     let html5QrCode = null;
 
-    // --- FUNGSI NAVIGASI ---
+    // --- BEEP AUDIO ---
+    function playBeep() {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(880, context.currentTime);
+        gainNode.gain.setValueAtTime(0.1, context.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.1);
+    }
+
+    // --- NAVIGASI ---
     window.showSection = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById('header-title').innerText = id === 'kasir-main' ? 'Mesin Kasir' : 'Database Barang';
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        if(id === 'kasir-main') document.getElementById('tab-kasir').classList.add('active');
+        if(id === 'input-barang') document.getElementById('tab-input').classList.add('active');
         
-        // Matikan kamera jika pindah section
         if(id !== 'kasir-main' && html5QrCode) {
-            html5QrCode.stop();
+            html5QrCode.stop().catch(() => {});
         }
     };
 
-    // --- SCANNER KAMERA ---
+    // --- KAMERA SCANNER ---
     window.startScanner = () => {
-        html5QrCode = new Html5Qrcode("reader");
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader");
+        }
+        
+        const config = { 
+            fps: 15, 
+            qrbox: { width: 200, height: 200 },
+            aspectRatio: 1.0 
+        };
 
+        // Mulai kamera belakang (environment)
         html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            // Jika berhasil scan
             cariBarang(decodedText);
-            
-            // Memberi feedback visual sementara (opsional)
-            document.getElementById('reader').style.border = "5px solid #4dbd74";
-            setTimeout(() => { document.getElementById('reader').style.border = "1px solid var(--border-color)"; }, 500);
-
+            // Tambahkan getaran jika didukung
+            if (navigator.vibrate) navigator.vibrate(100);
         }).catch(err => {
-            alert("Kamera gagal diakses: " + err);
+            console.error(err);
+            alert("Kamera tidak ditemukan atau izin ditolak!");
         });
     };
 
-    // --- LOGIKA DATABASE ---
+    // --- DATABASE BARANG ---
     document.getElementById('btn-save-db').onclick = async () => {
         const id = document.getElementById('db-id').value;
         const nama = document.getElementById('db-nama').value;
         const harga = document.getElementById('db-harga').value;
-        if(!id || !nama || !harga) return alert("Lengkapi data!");
+        if(!id || !nama || !harga) return alert("Isi semua data!");
 
         try {
-            await setDoc(doc(db, "katalog_barang", id), {
-                nama: nama,
-                harga: parseInt(harga)
-            });
-            alert("✅ Barang tersimpan di Cloud!");
+            await setDoc(doc(db, "katalog_barang", id), { nama, harga: parseInt(harga) });
+            playBeep();
             document.getElementById('db-id').value = "";
             document.getElementById('db-nama').value = "";
             document.getElementById('db-harga').value = "";
-        } catch (e) { console.error(e); }
+        } catch (e) { alert("Gagal simpan!"); }
     };
 
     onSnapshot(collection(db, "katalog_barang"), (snapshot) => {
@@ -360,12 +289,14 @@
         snapshot.forEach(doc => {
             const data = doc.data();
             html += `<tr>
-                <td><code>${doc.id}</code></td>
-                <td style="text-align: left;">${data.nama}</td>
-                <td>Rp ${data.harga.toLocaleString()}</td>
-                <td>
-                    <button onclick="hapusMaster('${doc.id}')" class="text-red-500">
-                         <svg viewBox="0 0 24 24" style="width:14px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                <td class="p-3">
+                    <div class="font-bold text-sm">${data.nama}</div>
+                    <div class="text-[10px] text-gray-400">${doc.id}</div>
+                </td>
+                <td class="p-3 text-sm">Rp ${data.harga.toLocaleString()}</td>
+                <td class="p-3 text-right">
+                    <button onclick="hapusMaster('${doc.id}')" class="text-red-400">
+                        <svg viewBox="0 0 24 24" style="width:14px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                     </button>
                 </td>
             </tr>`;
@@ -374,16 +305,16 @@
     });
 
     window.hapusMaster = async (id) => {
-        if(confirm("Hapus barang dari database?")) await deleteDoc(doc(db, "katalog_barang", id));
+        if(confirm("Hapus barang?")) await deleteDoc(doc(db, "katalog_barang", id));
     };
 
-    // --- LOGIKA KASIR (INPUT & KERANJANG) ---
+    // --- KASIR LOGIC ---
     const scanInput = document.getElementById('scan-input');
     scanInput.addEventListener('keypress', async (e) => {
         if (e.key === 'Enter') {
-            const id = scanInput.value;
+            const val = scanInput.value;
             scanInput.value = "";
-            await cariBarang(id);
+            await cariBarang(val);
         }
     });
 
@@ -392,30 +323,20 @@
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            const data = docSnap.data();
-            addToCart(id, data);
+            playBeep();
+            addToCart(id, docSnap.data());
         } else {
-            // Beri notifikasi suara atau vibrate jika di mobile
-            if (navigator.vibrate) navigator.vibrate(200);
-            alert("ID Barang tidak terdaftar!");
+            if (navigator.vibrate) navigator.vibrate(500);
+            alert("Barang [" + id + "] tidak ditemukan!");
         }
     }
 
     function addToCart(id, data) {
-        // CEK APAKAH BARANG SUDAH ADA DI KERANJANG
-        const existingItem = cart.find(item => item.id === id);
-
-        if (existingItem) {
-            // Jika ada, tambah jumlahnya saja
-            existingItem.qty += 1;
+        const item = cart.find(i => i.id === id);
+        if (item) {
+            item.qty += 1;
         } else {
-            // Jika belum ada, masukkan sebagai baris baru
-            cart.push({
-                id: id,
-                nama: data.nama,
-                harga: data.harga,
-                qty: 1
-            });
+            cart.push({ id, nama: data.nama, harga: data.harga, qty: 1 });
         }
         renderCart();
     }
@@ -424,21 +345,22 @@
         let html = "";
         let total = 0;
         cart.forEach((item, index) => {
-            const subtotal = item.harga * item.qty;
-            total += subtotal;
+            const sub = item.harga * item.qty;
+            total += sub;
             html += `<tr>
-                <td style="text-align: left;">${item.nama}</td>
-                <td>Rp ${item.harga.toLocaleString()}</td>
-                <td><b class="text-blue-600">${item.qty}</b></td>
-                <td style="font-weight: bold;">Rp ${subtotal.toLocaleString()}</td>
-                <td>
-                    <button onclick="removeCart(${index})" class="text-red-500">
-                        <svg viewBox="0 0 24 24" style="width:14px;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                <td class="p-3">
+                    <div class="font-bold text-sm">${item.nama}</div>
+                    <div class="text-[11px] text-gray-500">Rp ${item.harga.toLocaleString()} x ${item.qty}</div>
+                </td>
+                <td class="p-3 font-bold text-right text-sm">Rp ${sub.toLocaleString()}</td>
+                <td class="p-3 text-center">
+                    <button onclick="removeCart(${index})" class="text-gray-300">
+                        <svg viewBox="0 0 24 24" style="width:16px;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                     </button>
                 </td>
             </tr>`;
         });
-        document.getElementById('cart-table').innerHTML = html || '<tr><td colspan="5">Belum ada barang</td></tr>';
+        document.getElementById('cart-table').innerHTML = html || '<tr><td class="p-10 text-center text-gray-400 text-xs">Keranjang Kosong</td></tr>';
         document.getElementById('total-bayar').innerText = `Rp ${total.toLocaleString()}`;
     }
 
@@ -448,12 +370,11 @@
     };
 
     window.resetCart = () => {
-        if(confirm("Hapus semua daftar belanja?")) {
+        if(cart.length > 0 && confirm("Reset?")) {
             cart = [];
             renderCart();
         }
     };
-
 </script>
 </body>
 </html>
