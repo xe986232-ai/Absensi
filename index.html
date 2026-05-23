@@ -171,10 +171,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
  <div class="segment" style="margin-top:-8px;display:flex;align-items:center;gap:8px">
     <button class="seg-btn active" onclick="setAbsenTab('log',this)">Log Harian</button>
-   <a href="slip_gaji.html" class="seg-btn" style="text-decoration:none;text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px">
+   <a href="slip_gaji.html" class="seg-btn" style="text-decoration:none;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px">
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
   View Slip
 </a>
+
+<!-- MODAL PASSWORD -->
+
 </div>
   <div class="filter-row" id="absen-filter-row">
     <select id="absen-filter-month" class="filter-select" onchange="renderAbsensi()"></select>
@@ -486,12 +489,20 @@ function renderAbsenLog(data,peg,el){
     const isToday=tgl===todayKey;
     html+=`<div class="absen-date-row"><div class="absen-date-label">${isToday?' — ':' '}${label}</div><div class="absen-chips">`;
     Object.keys(dayData).forEach(pId=>{
-      const s=dayData[pId];
-      const nama=peg[pId]?peg[pId].nama:pId.slice(0,6);
-      const cls=s==='H'?'chip-h':s==='SH'?'chip-sh':'chip-a';
-      const label2=s==='H'?'✓ Hadir':s==='SH'?'½ Hari':'✗ Alpa';
-      html+=`<span class="absen-chip ${cls}">${nama} · ${label2}</span>`;
-    });
+  const s=dayData[pId];
+  const nama=peg[pId]?peg[pId].nama:pId.slice(0,6);
+  const cls=s==='H'?'chip-h':s==='SH'?'chip-sh':'chip-a';
+  const label2=s==='H'?'✓ Hadir':s==='SH'?'½ Hari':'✗ Alpa';
+  const avatarUrl=`https://api.dicebear.com/7.x/micah/svg?seed=${pId}`;
+  const bg=avatarColors(nama);
+  const ini=initials(nama);
+  html+=`<span class="absen-chip ${cls}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 4px">
+    <img src="${avatarUrl}" alt="${nama}" 
+      style="width:20px;height:20px;border-radius:50%;background:${bg};flex-shrink:0"
+      onerror="this.style.display='none'">
+    ${nama} · ${label2}
+  </span>`;
+});
     html+=`</div></div>`;
   });
   el.innerHTML=html;
@@ -546,7 +557,7 @@ const dayEnd = end;
     const nama=p?p.nama:pId.slice(0,8);
     const bg=avatarColors(nama);
     const ini=initials(nama);
-    const avatarUrl=`https://api.dicebear.com/7.x/avataaars/svg?seed=${pId}`;
+    const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${id}`;
     html+=`<div class="list-item">
       <div class="avatar" style="background:${bg}"><img src="${avatarUrl}" alt="${nama}" onerror="this.parentElement.textContent='${ini}'"></div>
       <div class="item-info">
@@ -600,7 +611,7 @@ function renderPegawai(){
     activeCount++; // Hanya tambah hitungan jika pegawai tidak cuti
     const bg = avatarColors(p.nama);
     const ini = initials(p.nama);
-    const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${id}`;
+    const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${id}`;
     const badgeClass = p.status === 'Kepala Tukang' ? 'badge-purple' : p.status === 'Tukang' ? 'badge-blue' : 'badge-green';
     
     listHtml += `
