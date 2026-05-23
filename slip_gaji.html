@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rizfx — Slip Gaji</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F7F8FA;
+  --surface:#FFFFFF;
+  --surface2:#F0F2F5;
+  --text:#0D0F12;
+  --text2:#6B7280;
+  --text3:#9CA3AF;
+  --border:#E5E7EB;
+  --accent:#2563EB;
+  --accent2:#7C3AED;
+  --green:#059669;
+  --red:#DC2626;
+  --orange:#D97706;
+  --nav-h:0px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(72px + var(--safe-bottom));overflow-x:hidden}
+.header{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:16px 20px 12px;display:flex;align-items:flex-end;gap:10px;}
+.header-brand{font-size:22px;font-weight:600;letter-spacing:-0.5px;color:var(--text)}
+.header-brand span{color:var(--accent)}
+.header-badge{font-size:10px;font-family:'DM Mono',monospace;background:var(--accent);color:#fff;padding:3px 8px;border-radius:4px;letter-spacing:0.5px;margin-bottom:2px;}
+.header-date{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace}
+
+.content{padding:20px}
+
+/* SEGMENT */
+.segment{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:16px;}
+.seg-btn{flex:1;padding:8px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text3);border-radius:8px;cursor:pointer;transition:all .2s;}
+.seg-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+
+/* FILTER */
+.filter-row{display:flex;gap:8px;margin-bottom:16px}
+.filter-select{flex:1;padding:9px 10px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--surface);color:var(--text);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.filter-select-sm{width:90px;flex:none}
+
+/* SEC TITLE */
+.sec-title{font-size:13px;font-weight:600;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:12px}
+
+/* LIST CARD */
+.list-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;}
+.list-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.list-header h3{font-size:14px;font-weight:500}
+.list-count{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.list-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;transition:background .15s;}
+.list-item:last-child{border-bottom:none}
+.list-item:active{background:var(--surface2)}
+
+/* AVATAR */
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.item-right{text-align:right;flex-shrink:0}
+.item-val{font-size:13px;font-weight:600;font-family:'DM Mono',monospace}
+.item-val.green{color:var(--green)}
+
+/* BADGE */
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;letter-spacing:0.3px;text-transform:uppercase;}
+.badge-green{background:#D1FAE5;color:#065F46}
+.badge-blue{background:#DBEAFE;color:#1E40AF}
+.badge-purple{background:#EDE9FE;color:#5B21B6}
+.badge-orange{background:#FEF3C7;color:#92400E}
+
+/* VIEW BUTTON */
+.btn-view{padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-view:active{background:var(--surface2)}
+
+/* DETAIL PANEL */
+.detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden;display:none}
+.detail-panel.open{display:block}
+.detail-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.detail-title{font-size:15px;font-weight:600;color:var(--text)}
+.detail-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.detail-close{margin-left:auto;width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text3)}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.stat-card{background:var(--surface2);border-radius:12px;padding:12px;text-align:center}
+.stat-label{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:0.3px;text-transform:uppercase;margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:600;letter-spacing:-1px;line-height:1}
+.stat-value.green{color:var(--green)}
+.stat-value.orange{color:var(--orange)}
+.stat-value.red{color:var(--red)}
+
+/* LEMBUR INPUT INSIDE DETAIL */
+.lembur-row{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.lembur-label{font-size:13px;color:var(--text2);flex:1}
+.lembur-input{width:130px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Mono',monospace;font-size:13px;background:var(--surface);color:var(--text);text-align:right}
+.lembur-input:focus{outline:none;border-color:var(--accent)}
+
+/* TOTAL BAR */
+.total-bar{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:0;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;color:#fff;}
+.total-bar-label{font-size:12px;opacity:0.85}
+.total-bar-val{font-size:18px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-0.5px}
+
+/* DOWNLOAD BUTTON */
+.btn-download{width:calc(100% - 32px);margin:14px 16px;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;}
+.btn-download:active{opacity:0.85}
+.btn-download svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* LOADING / EMPTY */
+.loading{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px}
+
+/* STATUS BADGE */
+.status-label{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;padding:4px 8px;background:var(--surface2);border-radius:6px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--safe-bottom));display:grid;grid-template-columns:repeat(2,1fr);}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.nav-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
+.nav-icon svg{width:22px;height:22px;fill:none;stroke:var(--text3);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.nav-label{font-size:9px;color:var(--text3);font-weight:500;transition:color .2s}
+.nav-item.active .nav-icon svg{stroke:var(--accent)}
+.nav-item.active .nav-label{color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<!-- GATE PASSWORD -->
+<div id="gate" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border-radius:20px;padding:28px;width:100%;max-width:320px;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,0.1)">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:48px;height:48px;background:#DBEAFE;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      </div>
+      <div style="font-size:17px;font-weight:600;color:var(--text)">Akses Slip Gaji</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">Masukkan password admin</div>
+    </div>
+    <input type="password" id="gate-input" placeholder="Password..." style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--surface);color:var(--text);margin-bottom:8px;outline:none" onkeydown="if(event.key==='Enter') cekGate()">
+    <div id="gate-error" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none">Password salah, coba lagi.</div>
+    <button onclick="cekGate()" style="width:100%;padding:13px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer">Masuk</button>
+  </div>
+</div>
+<div class="header">
+  <div>
+    <div class="header-brand">Rizfx<span>.</span></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:1px">Slip Gaji Pegawai</div>
+  </div>
+  <div style="margin-left:auto;text-align:right">
+    <div class="header-badge">PAYROLL</div>
+    <div class="header-date" id="hdr-date">—</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- SEGMENT LOKASI -->
+  <div class="segment">
+    <button class="seg-btn active" onclick="setSeg('rumah',this)">Rumah</button>
+  </div>
+
+  <!-- FILTER BULAN & PERIODE -->
+  <div class="filter-row">
+    <select id="filter-month" class="filter-select"></select>
+    <select id="filter-year" class="filter-select filter-select-sm"></select>
+    <select id="filter-periode" class="filter-select filter-select-sm">
+      <option value="1">P1 (1-15)</option>
+      <option value="2">P2 (16-Akhir)</option>
+    </select>
+  </div>
+
+  <!-- DETAIL PANEL (muncul saat klik View) -->
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-header">
+      <div class="avatar" id="detail-avatar" style="width:42px;height:42px;font-size:14px"></div>
+      <div>
+        <div class="detail-title" id="detail-nama">—</div>
+        <div class="detail-sub" id="detail-info">—</div>
+      </div>
+      <div class="detail-close" onclick="closeDetail()">✕</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">Hadir</div>
+        <div class="stat-value green" id="detail-hadir">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">½ Hari</div>
+        <div class="stat-value orange" id="detail-sh">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Alpa</div>
+        <div class="stat-value red" id="detail-alpa">0</div>
+      </div>
+    </div>
+
+    <div class="lembur-row">
+      <div class="lembur-label">
+        <div style="font-weight:500">Lembur / Bonus</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Opsional, masukkan jika ada</div>
+      </div>
+      <input type="number" id="input-lembur" class="lembur-input" value="0" placeholder="0" oninput="hitungTotal()">
+    </div>
+
+    <div class="total-bar">
+      <div>
+        <div class="total-bar-label" id="total-periode-label">—</div>
+        <div class="total-bar-val" id="total-gaji">Rp 0</div>
+      </div>
+      <div style="text-align:right;opacity:0.8">
+        <div style="font-size:10px;margin-bottom:3px" id="detail-poin-label">0 poin</div>
+        <div style="font-size:12px;font-weight:500" id="detail-gaji-hari">Rp 0/hari</div>
+      </div>
+    </div>
+
+    <button class="btn-download" onclick="downloadPdf()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download PDF Slip Gaji
+    </button>
+  </div>
+
+  <!-- DAFTAR PEGAWAI -->
+  <div id="peg-loading" class="loading"><div class="spinner"></div>Memuat pegawai...</div>
+  <div id="peg-list" style="display:none"></div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBLOFcW9Q-ETL48ouy0SaLkD8WNJp-VeHY",
+  authDomain: "absensi-cffc4.firebaseapp.com",
+  databaseURL: "https://absensi-cffc4-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "absensi-cffc4"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const MONTH_NAMES = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const now = new Date();
+document.getElementById('hdr-date').textContent = now.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+let dataPegawai = {};
+let dataAbsensi = {};
+let activeSeg = 'rumah';
+let activeUid = null;
+
+// ---- INIT FILTER ----
+(function initFilter(){
+  const mSel = document.getElementById('filter-month');
+  const ySel = document.getElementById('filter-year');
+  MONTH_NAMES.forEach((name,i)=>{
+    const o = document.createElement('option');
+    o.value = String(i+1).padStart(2,'0');
+    o.textContent = name;
+    if(i === now.getMonth()) o.selected = true;
+    mSel.appendChild(o);
+  });
+  for(let y = now.getFullYear()-1; y <= now.getFullYear()+1; y++){
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    if(y === now.getFullYear()) o.selected = true;
+    ySel.appendChild(o);
+  }
+  mSel.addEventListener('change', onFilterChange);
+  ySel.addEventListener('change', onFilterChange);
+  document.getElementById('filter-periode').addEventListener('change', onFilterChange);
+})();
+
+function onFilterChange(){
+  closeDetail();
+}
+
+// ---- FIREBASE LISTENERS ----
+function listenPegawai(){
+  const path = activeSeg === 'rumah' ? 'pegawai' : 'pegawai_musholla';
+  document.getElementById('peg-loading').style.display='block';
+  document.getElementById('peg-list').style.display='none';
+  onValue(ref(db, path), s=>{
+    dataPegawai = s.val()||{};
+    renderPegawai();
+  });
+}
+
+function listenAbsensi(){
+  const path = activeSeg === 'rumah' ? 'absensi' : 'absensi_musholla';
+  onValue(ref(db, path), s=>{
+    dataAbsensi = s.val()||{};
+    // Jika ada panel terbuka, refresh hitungan
+    if(activeUid) hitungAbsensi(activeUid);
+  });
+}
+
+// ---- RENDER PEGAWAI ----
+function avatarColors(name){
+  const colors=['#2563EB','#7C3AED','#059669','#D97706','#DC2626','#0891B2'];
+  let h=0; for(let c of name) h=(h+c.charCodeAt(0))%colors.length;
+  return colors[h];
+}
+function initials(name){return name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase()}
+function fmtRp(n){return 'Rp '+Math.floor(n||0).toLocaleString('id-ID')}
+
+function renderPegawai(){
+  document.getElementById('peg-loading').style.display='none';
+  const el = document.getElementById('peg-list');
+  el.style.display='block';
+
+  const keys = Object.keys(dataPegawai).filter(k=> dataPegawai[k].stat !== 'cuti');
+  if(!keys.length){ el.innerHTML='<div class="empty">Belum ada pegawai aktif</div>'; return; }
+
+  let html = `<div class="list-card">
+    <div class="list-header"><h3>Daftar Pegawai</h3><span class="list-count">${keys.length} orang aktif</span></div>`;
+
+  keys.forEach(id=>{
+    const p = dataPegawai[id];
+    const bg = avatarColors(p.nama);
+    const ini = initials(p.nama);
+   const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${id}`;
+    const badgeClass = p.status==='Kepala Tukang'?'badge-purple':p.status==='Tukang'?'badge-blue':'badge-green';
+    html += `<div class="list-item">
+      <div class="avatar" style="background:${bg}"><img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'"></div>
+      <div class="item-info">
+        <div class="item-name">${p.nama}</div>
+        <div class="item-sub" style="display:flex;gap:6px;align-items:center;margin-top:4px">
+          <span class="badge ${badgeClass}">${p.status}</span>
+          <span style="font-size:11px;color:var(--text3)">${fmtRp(p.gaji)}/hari</span>
+        </div>
+      </div>
+      <button class="btn-view" onclick="openDetail('${id}')">Lihat</button>
+    </div>`;
+  });
+
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+// ---- OPEN / CLOSE DETAIL ----
+window.openDetail = function(uid){
+  activeUid = uid;
+  const p = dataPegawai[uid];
+  if(!p) return;
+
+  // Set avatar
+  const bg = avatarColors(p.nama);
+  const ini = initials(p.nama);
+const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${id}`;
+  const avatarEl = document.getElementById('detail-avatar');
+  avatarEl.style.background = bg;
+  avatarEl.innerHTML = `<img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+
+  document.getElementById('detail-nama').textContent = p.nama;
+  document.getElementById('detail-info').textContent = p.status + ' · ' + fmtRp(p.gaji) + '/hari';
+  document.getElementById('input-lembur').value = 0;
+
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('open');
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+
+  hitungAbsensi(uid);
+};
+
+window.closeDetail = function(){
+  activeUid = null;
+  document.getElementById('detail-panel').classList.remove('open');
+};
+
+// ---- HITUNG ABSENSI ----
+window.hitungAbsensi = function(uid){
+  const mm = document.getElementById('filter-month').value;
+  const yy = document.getElementById('filter-year').value;
+  const p = parseInt(document.getElementById('filter-periode').value);
+  const lastDay = new Date(parseInt(yy), parseInt(mm), 0).getDate();
+  const dayStart = p===1 ? 1 : 16;
+  const dayEnd = p===1 ? 15 : lastDay;
+
+  let H=0, SH=0, A=0;
+  for(let d=dayStart; d<=dayEnd; d++){
+    const key = `${yy}-${mm}-${String(d).padStart(2,'0')}`;
+    const s = dataAbsensi[key] && dataAbsensi[key][uid] ? dataAbsensi[key][uid] : null;
+    if(s==='H') H++;
+    else if(s==='SH') SH++;
+    else if(s==='A') A++;
+  }
+
+  document.getElementById('detail-hadir').textContent = H;
+  document.getElementById('detail-sh').textContent = SH;
+  document.getElementById('detail-alpa').textContent = A;
+
+  window._currentUid = uid;
+  window._currentH = H;
+  window._currentSH = SH;
+  window._currentA = A;
+
+  hitungTotal();
+};
+
+window.hitungTotal = function(){
+  const uid = activeUid;
+  if(!uid || !dataPegawai[uid]) return;
+  const p = dataPegawai[uid];
+  const H = window._currentH||0;
+  const SH = window._currentSH||0;
+  const lembur = parseInt(document.getElementById('input-lembur').value)||0;
+  const poin = H + SH*0.5;
+  const total = Math.floor(p.gaji * poin) + lembur;
+
+  const mm = document.getElementById('filter-month').value;
+  const yy = document.getElementById('filter-year').value;
+  const per = document.getElementById('filter-periode').value;
+  const mName = MONTH_NAMES[parseInt(mm)-1];
+  const periodeLabel = `P${per} (${per==='1'?'1-15':'16-Akhir'}) ${mName} ${yy}`;
+
+  document.getElementById('total-gaji').textContent = fmtRp(total);
+  document.getElementById('total-periode-label').textContent = periodeLabel;
+  document.getElementById('detail-poin-label').textContent = poin + ' poin';
+  document.getElementById('detail-gaji-hari').textContent = fmtRp(p.gaji)+'/hari';
+};
+
+// ---- DOWNLOAD PDF ----
+window.downloadPdf = function(){
+  const uid = activeUid;
+  if(!uid || !dataPegawai[uid]){ alert('Pilih pegawai terlebih dahulu!'); return; }
+  const p = dataPegawai[uid];
+  const H = window._currentH||0;
+  const SH = window._currentSH||0;
+  const A = window._currentA||0;
+  const lembur = parseInt(document.getElementById('input-lembur').value)||0;
+  const poin = H + SH*0.5;
+  const total = Math.floor(p.gaji * poin) + lembur;
+  const mm = document.getElementById('filter-month').value;
+  const yy = document.getElementById('filter-year').value;
+  const per = document.getElementById('filter-periode').value;
+  const mName = MONTH_NAMES[parseInt(mm)-1];
+  const periodeLabel = `P${per} (${per==='1'?'1-15':'16-Akhir'}) ${mName} ${yy}`;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:[48,100] });
+  doc.setFont("courier","bold");
+  doc.setFontSize(10);
+  doc.text("PEMBANGUNAN", 24, 10, {align:"center"});
+  doc.text("SLIP GAJI", 24, 14, {align:"center"});
+  doc.setFontSize(8);
+  doc.text("--------------------------------", 24, 18, {align:"center"});
+  doc.text(`Nama    : ${p.nama}`, 5, 24);
+  doc.text(`Status  : ${p.status}`, 5, 28);
+  doc.setFontSize(7);
+  doc.text(`Periode : ${periodeLabel}`, 5, 32);
+  doc.setFontSize(8);
+  doc.text("--------------------------------", 24, 38, {align:"center"});
+  doc.text(`Hadir (1) : ${H} x ${p.gaji.toLocaleString('id-ID')}`, 5, 44);
+  doc.text(`1/2 Hari  : ${SH} x ${(p.gaji/2).toLocaleString('id-ID')}`, 5, 48);
+  doc.text(`Alpa (0)  : ${A}`, 5, 52);
+  if(lembur>0) doc.text(`Lembur    : Rp ${lembur.toLocaleString('id-ID')}`, 5, 56);
+  doc.text("--------------------------------", 24, lembur>0?62:58, {align:"center"});
+  doc.setFontSize(11);
+  doc.text(`TOTAL: Rp ${total.toLocaleString('id-ID')}`, 24, lembur>0?69:65, {align:"center"});
+  doc.setFontSize(8);
+  doc.text("--------------------------------", 24, lembur>0?75:72, {align:"center"});
+  doc.text("Terima Kasih", 24, lembur>0?81:78, {align:"center"});
+  doc.save(`Slip_${p.nama.replace(/\s+/g,'_')}_${p.status}_P${per}_${mm}${yy}.pdf`);
+};
+
+// ---- SEG SWITCH ----
+window.setSeg = function(seg, btn){
+  activeSeg = seg;
+  btn.closest('.segment').querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  closeDetail();
+  listenPegawai();
+  listenAbsensi();
+};
+
+// ---- INIT ----
+listenPegawai();
+listenAbsensi();
+// ---- GATE PASSWORD ----
+(async function initGate(){
+  // Kalau sudah login di session ini, langsung buka
+  if(sessionStorage.getItem('slip_auth') === 'ok'){
+    document.getElementById('gate').style.display='none';
+    return;
+  }
+  // Blokir scroll konten di belakang
+  document.body.style.overflow='hidden';
+})();
+
+window.cekGate = async function(){
+  const input = document.getElementById('gate-input').value;
+  const snap = await get(ref(db, 'admin_config/password'));
+  if(input === snap.val()){
+    sessionStorage.setItem('slip_auth','ok');
+    document.getElementById('gate').style.display='none';
+    document.body.style.overflow='';
+    document.getElementById('gate-input').value='';
+  } else {
+    document.getElementById('gate-error').style.display='block';
+    document.getElementById('gate-input').focus();
+  }
+};
+</script>
+<nav class="bottom-nav">
+  <a href="view.html" class="nav-item" style="text-decoration:none">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <span class="nav-label">Home</span>
+  </a>
+  <button class="nav-item active">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 10-4 0v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4a2 2 0 10-4 0v4a2 2 0 002 2z"/></svg></div>
+    <span class="nav-label">Slip Gaji</span>
+  </button>
+</nav>
+</body>
+</html>
