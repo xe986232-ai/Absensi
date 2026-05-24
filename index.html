@@ -165,9 +165,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- ABSENSI -->
 <!-- ABSENSI -->
 <div class="section" id="sec-absensi">
-  <div class="segment">
-    <button class="seg-btn active" onclick="setAbsenSeg('rumah',this)">Rumah</button>
-    <button class="seg-btn" onclick="setAbsenSeg('musholla',this)">Musholla</button>
+<div class="segment">
+    <button class="seg-btn active" onclick="setAbsenSeg('rumah',this)">INTI</button>
+    <button class="seg-btn" onclick="setAbsenSeg('musholla',this)">LOKAQ</button>
   </div>
  <div class="segment" style="margin-top:-8px;display:flex;align-items:center;gap:8px">
     <button class="seg-btn active" onclick="setAbsenTab('log',this)">Log Harian</button>
@@ -325,6 +325,19 @@ onValue(ref(db,'absensi_musholla'), s=>{
   absensiM=s.val()||{};
   updateHadirToday(); if(window._absenSeg==='musholla') renderAbsensi();
 });
+
+// LOKAQ — deklarasi di luar supaya bisa diakses renderAbsenLokaq
+let tulokakData = {};
+let absensiLokaqData = {};
+
+onValue(ref(db,'tulokak'), s=>{ 
+  tulokakData = s.val()||{}; 
+  if(window._absenSeg==='musholla') renderAbsensi();
+});
+onValue(ref(db,'absensi_tulokak'), s=>{ 
+  absensiLokaqData = s.val()||{}; 
+  if(window._absenSeg==='musholla') renderAbsensi();
+});
 onValue(ref(db,'pengeluaran_rumah'), s=>{ expR=s.val()||{}; if(window._expSeg==='rumah') renderExp(); });
 onValue(ref(db,'pengeluaran_musholla'), s=>{ expM=s.val()||{}; if(window._expSeg==='musholla') renderExp(); });
 onValue(ref(db,'pengeluaran_kios'), s=>{ expK=s.val()||{}; if(window._expSeg==='kios') renderExp(); });
@@ -462,8 +475,18 @@ function getAbsenFilterDates(){
 
 function renderAbsensi(){
   const seg=window._absenSeg;
-  const data=seg==='rumah'?absensiR:absensiM;
-  const peg=seg==='rumah'?pegawaiR:pegawaiM;
+
+  // LOKAQ: pakai data tulokak
+  if(seg==='musholla'){
+    document.getElementById('absen-loading').style.display='none';
+    const el=document.getElementById('absen-content');
+    el.style.display='block';
+    renderAbsenLokaq(el);
+    return;
+  }
+
+  const data=absensiR;
+  const peg=pegawaiR;
   document.getElementById('absen-loading').style.display='none';
   const el=document.getElementById('absen-content');
   el.style.display='block';
@@ -471,43 +494,172 @@ function renderAbsensi(){
   else renderAbsenRekap(data,peg,el);
 }
 
-function renderAbsenLog(data,peg,el){
-  const today=data[todayKey]||{};
-  let h=0,sh=0,a=0;
-  Object.values(today).forEach(v=>{ if(v==='H') h++; else if(v==='SH') sh++; else if(v==='A') a++; });
-  const sortedDates=Object.keys(data).sort((a,b)=>b.localeCompare(a)).slice(0,14);
-  let html=`<div class="summary-grid">
+function renderAbsenLog(data, peg, el) {
+  // BARU — pakai logika yang sama, hitung dari daftar pegawai
+const today = data[todayKey] || {};
+let h = 0, sh = 0, a = 0;
+Object.keys(peg).forEach(pId => {
+  if (peg[pId].stat === 'cuti') return;
+  const joinDate = peg[pId].joinDate || '2000-01-01';
+  if (todayKey < joinDate) return; // ← tambah ini
+  const s = today[pId];
+  if (s === 'H') h++;
+  else if (s === 'SH') sh++;
+  else a++;
+});
+
+  // Ambil SEMUA tanggal, sort descending
+  const sortedDates = Object.keys(data).sort((a, b) => b.localeCompare(a));
+
+  let html = `<div class="summary-grid">
     <div class="summary-mini"><div class="summary-mini-val" style="color:var(--green)">${h}</div><div class="summary-mini-label">Hadir</div></div>
     <div class="summary-mini"><div class="summary-mini-val" style="color:var(--orange)">${sh}</div><div class="summary-mini-label">½ Hari</div></div>
     <div class="summary-mini"><div class="summary-mini-val" style="color:var(--red)">${a}</div><div class="summary-mini-label">Alpa</div></div>
   </div>`;
-  if(!sortedDates.length){ el.innerHTML=html+'<div class="empty">Belum ada data absensi</div>'; return; }
-  sortedDates.forEach(tgl=>{
-    const dayData=data[tgl];
-    const d=new Date(tgl+'T00:00:00');
-    const label=d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'});
-    const isToday=tgl===todayKey;
-    html+=`<div class="absen-date-row"><div class="absen-date-label">${isToday?' — ':' '}${label}</div><div class="absen-chips">`;
-    Object.keys(dayData).forEach(pId=>{
-  const s=dayData[pId];
-  const nama=peg[pId]?peg[pId].nama:pId.slice(0,6);
-  const cls=s==='H'?'chip-h':s==='SH'?'chip-sh':'chip-a';
-  const label2=s==='H'?'✓ Hadir':s==='SH'?'½ Hari':'✗ Alpa';
-  const avatarUrl=`https://api.dicebear.com/7.x/micah/svg?seed=${pId}`;
-  const bg=avatarColors(nama);
-  const ini=initials(nama);
-  html+=`<span class="absen-chip ${cls}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 4px">
-    <img src="${avatarUrl}" alt="${nama}" 
-      style="width:20px;height:20px;border-radius:50%;background:${bg};flex-shrink:0"
-      onerror="this.style.display='none'">
+
+  if (!sortedDates.length) { el.innerHTML = html + '<div class="empty">Belum ada data absensi</div>'; return; }
+
+  // Grup per bulan
+  const grouped = {};
+  sortedDates.forEach(tgl => {
+    const [y, m] = tgl.split('-');
+    const key = `${y}-${m}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(tgl);
+  });
+
+  const groupKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+  const currentMonthKey = todayKey.slice(0, 7); // "YYYY-MM"
+
+  groupKeys.forEach((gKey, gIdx) => {
+    const [gy, gm] = gKey.split('-');
+    const mLabel = new Date(`${gy}-${gm}-01`).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    const isCurrentMonth = gKey === currentMonthKey;
+    const collapseId = `absen-group-${gIdx}`;
+
+    html += `
+      <div style="margin-bottom:8px">
+        <button onclick="toggleAbsenGroup('${collapseId}')" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;font-weight:600;color:var(--text)">${mLabel}</span>
+            ${isCurrentMonth ? '<span class="badge badge-blue">Bulan Ini</span>' : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${grouped[gKey].length} hari</span>
+            <svg id="icon-${collapseId}" style="transition:transform .2s;transform:rotate(${isCurrentMonth ? '180' : '0'}deg)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </button>
+        <div id="${collapseId}" style="display:${isCurrentMonth ? 'block' : 'none'};padding-top:6px">`;
+
+    grouped[gKey].forEach(tgl => {
+      const dayData = data[tgl];
+      const d = new Date(tgl + 'T00:00:00');
+      const label = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+      const isToday = tgl === todayKey;
+
+      html += `<div class="absen-date-row"><div class="absen-date-label">${isToday ? '📍 Hari Ini — ' : ''}${label}</div><div class="absen-chips">`;
+// BARU — loop dari daftar pegawai, bukan dari data absensi
+Object.keys(peg).forEach(pId => {
+  if (peg[pId].stat === 'cuti') return;
+  const joinDate = peg[pId].joinDate || '2000-01-01';
+  if (tgl < joinDate) return; // ← tambah ini
+  const s = (dayData && dayData[pId]) ? dayData[pId] : null;
+  // Jika bukan H atau SH → alpa
+  const status = (s === 'H' || s === 'SH') ? s : 'A';
+  const nama = peg[pId].nama;
+  const cls = status === 'H' ? 'chip-h' : status === 'SH' ? 'chip-sh' : 'chip-a';
+  const label2 = status === 'H' ? '✓ Hadir' : status === 'SH' ? '½ Hari' : '✗ Alpa';
+  const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${pId}`;
+  const bg = avatarColors(nama);
+  html += `<span class="absen-chip ${cls}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 4px">
+    <img src="${avatarUrl}" alt="${nama}" style="width:20px;height:20px;border-radius:50%;background:${bg};flex-shrink:0" onerror="this.style.display='none'">
     ${nama} · ${label2}
   </span>`;
 });
-    html+=`</div></div>`;
+      html += `</div></div>`;
+    });
+
+    html += `</div></div>`;
   });
+
+  el.innerHTML = html;
+}
+function renderAbsenLokaq(el){
+  const MONTH_NAMES_FULL = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  const now2 = new Date();
+  const mm = String(now2.getMonth()+1).padStart(2,'0');
+  const yy = now2.getFullYear().toString();
+  const lastDay = new Date(parseInt(yy), parseInt(mm), 0).getDate();
+
+  // Hitung rekap bulan berjalan
+  const rekapMap = {};
+  Object.keys(tulokakData).forEach(pId => {
+    let H=0, A=0;
+    for(let d=1; d<=lastDay; d++){
+      const tglKey=`${yy}-${mm}-${String(d).padStart(2,'0')}`;
+      const s=(absensiLokaqData[tglKey]&&absensiLokaqData[tglKey][pId])?absensiLokaqData[tglKey][pId]:null;
+      if(s==='H') H++;
+      else if(s==='A') A++;
+    }
+    rekapMap[pId]={H,A};
+  });
+
+  const totalH = Object.values(rekapMap).reduce((a,b)=>a+b.H,0);
+  const totalA = Object.values(rekapMap).reduce((a,b)=>a+b.A,0);
+  const mName = MONTH_NAMES_FULL[now2.getMonth()];
+
+  let html=`
+    <div class="total-bar" style="margin-bottom:16px">
+      <div>
+        <div class="total-bar-label">Rekap Kehadiran — ${mName} ${yy}</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px;opacity:0.9">${Object.keys(tulokakData).length} orang terdaftar</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;opacity:0.75;margin-bottom:3px">Total Hadir</div>
+        <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;line-height:1">${totalH}</div>
+      </div>
+    </div>`;
+
+  if(!Object.keys(tulokakData).length){
+    html+='<div class="empty">Belum ada data Lokaq</div>';
+    el.innerHTML=html; return;
+  }
+
+  html+=`<div class="list-card">
+    <div class="list-header"><h3>Poin Kehadiran Bulan Ini</h3><span class="list-count">${Object.keys(tulokakData).length} orang</span></div>`;
+
+  Object.keys(tulokakData).forEach(pId=>{
+    const p=tulokakData[pId];
+    const r=rekapMap[pId]||{H:0,A:0};
+    const bg=avatarColors(p.nama);
+    const ini=initials(p.nama);
+    const avatarUrl=`https://api.dicebear.com/7.x/micah/svg?seed=${pId}`;
+    const pct = lastDay>0 ? Math.round((r.H/lastDay)*100) : 0;
+
+    html+=`<div class="list-item">
+      <div class="avatar" style="background:${bg}">
+        <img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'">
+      </div>
+      <div class="item-info">
+        <div class="item-name">${p.nama}</div>
+        <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center">
+          <span class="absen-chip chip-h">✓ ${r.H} hari</span>
+          <span class="absen-chip chip-a">✗ ${r.A} alpa</span>
+        </div>
+        <div style="margin-top:6px;background:var(--surface2);border-radius:20px;height:5px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--green);border-radius:20px;transition:width .5s"></div>
+        </div>
+      </div>
+      <div class="item-right">
+        <div style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">${r.H}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${pct}%</div>
+      </div>
+    </div>`;
+  });
+
+  html+=`</div>`;
   el.innerHTML=html;
 }
-
 function renderAbsenRekap(data,peg,el){
   const {mm,yy,start,end,allPeriode}=getAbsenFilterDates();
   const mName=MONTH_NAMES[parseInt(mm)-1];
@@ -557,7 +709,7 @@ const dayEnd = end;
     const nama=p?p.nama:pId.slice(0,8);
     const bg=avatarColors(nama);
     const ini=initials(nama);
-    const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${id}`;
+    const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${pId}`;
     html+=`<div class="list-item">
       <div class="avatar" style="background:${bg}"><img src="${avatarUrl}" alt="${nama}" onerror="this.parentElement.textContent='${ini}'"></div>
       <div class="item-info">
@@ -593,58 +745,70 @@ function renderPegawai(){
   document.getElementById('peg-loading').style.display = 'none';
   const el = document.getElementById('peg-content');
   el.style.display = 'block';
-  
-  const keys = Object.keys(data);
-  if(!keys.length){ el.innerHTML = '<div class="empty">Belum ada pegawai</div>'; return; }
 
-  let listHtml = "";
-  let activeCount = 0;
+  const keys = Object.keys(data).filter(id => data[id].stat !== 'cuti');
+  if(!keys.length){ el.innerHTML = '<div class="empty">Belum ada pegawai aktif</div>'; return; }
+
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">
+      <div style="grid-column:1/-1;font-size:11px;color:var(--text3);font-weight:500">${keys.length} pegawai aktif</div>`;
 
   keys.forEach(id => {
     const p = data[id];
-
-    // --- LOGIKA HIDE PEGAWAI CUTI ---
-    if (p.stat === "cuti") {
-      return; // Loncat ke pegawai berikutnya (tidak dirender)
-    }
-
-    activeCount++; // Hanya tambah hitungan jika pegawai tidak cuti
     const bg = avatarColors(p.nama);
     const ini = initials(p.nama);
     const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${id}`;
     const badgeClass = p.status === 'Kepala Tukang' ? 'badge-purple' : p.status === 'Tukang' ? 'badge-blue' : 'badge-green';
-    
-    listHtml += `
-      <div class="list-item">
-        <div class="avatar" style="background:${bg}"><img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'"></div>
-        <div class="item-info">
-          <div class="item-name">${p.nama}</div>
-          <div class="item-sub"><span class="badge ${badgeClass}">${p.status}</span></div>
+    const joinLabel = p.joinDate ? new Date(p.joinDate+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '—';
+
+    html += `
+      <div onclick="togglePegCard('peg-${id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:box-shadow .2s;active:opacity-80">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div style="position:relative">
+            <div style="width:64px;height:64px;border-radius:50%;background:${bg};overflow:hidden;border:3px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,0.12)">
+              <img src="${avatarUrl}" alt="${p.nama}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div style=width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff>${ini}</div>'">
+            </div>
+            <div style="position:absolute;bottom:0;right:0;width:14px;height:14px;background:#10B981;border-radius:50%;border:2px solid var(--surface)"></div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3">${p.nama}</div>
+            <span class="badge ${badgeClass}" style="margin-top:5px;display:inline-block">${p.status}</span>
+          </div>
         </div>
-        <div class="item-right">
-          <div class="item-val green">${fmtRp(p.gaji)}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">per hari</div>
+        <!-- Detail card, hidden by default -->
+        <div id="peg-${id}" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:11px;color:var(--text3)">Gaji/hari</span>
+              <span style="font-size:12px;font-weight:600;color:var(--green);font-family:'DM Mono',monospace">${fmtRp(p.gaji)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:11px;color:var(--text3)">Bergabung</span>
+              <span style="font-size:11px;font-weight:500;color:var(--text2)">${joinLabel}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:11px;color:var(--text3)">Status</span>
+              <span class="badge ${badgeClass}">${p.status}</span>
+            </div>
+          </div>
         </div>
       </div>`;
   });
 
-  // Jika setelah difilter ternyata tidak ada yang aktif
-  if (activeCount === 0) {
-    el.innerHTML = '<div class="empty">Semua pegawai sedang cuti</div>';
-    return;
-  }
-
-  let html = `<div class="list-card">
-    <div class="list-header">
-      <h3>Daftar Pegawai</h3>
-      <span class="list-count">${activeCount} orang aktif</span>
-    </div>`;
-  
-  html += listHtml + '</div>';
+  html += `</div>`;
   el.innerHTML = html;
 }
 
-// PENGELUARAN — dengan filter bulan & tahun
+window.togglePegCard = function(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  // Tutup semua detail card pegawai (hanya yang di dalam grid, bukan peg-content/peg-loading)
+  document.querySelectorAll('#peg-content [id^="peg-"]').forEach(e => e.style.display = 'none');
+  // Buka yang diklik kalau sebelumnya tertutup
+  if (!isOpen) el.style.display = 'block';
+};
+// PENGELUARAN
 window._expSeg='rumah';
 window.setExpSeg=(seg,btn)=>{
   window._expSeg=seg;
@@ -771,6 +935,13 @@ window.showSec=(id,btn)=>{
 };
 
 setTimeout(()=>{ renderCombined(); renderPayrollChart(); },500);
+window.toggleAbsenGroup = function(id) {
+  const el = document.getElementById(id);
+  const icon = document.getElementById('icon-' + id);
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+};
 </script>
 </body>
 </html>
