@@ -594,17 +594,19 @@ function renderAbsenLokaq(el){
   // Hitung rekap bulan berjalan
   const rekapMap = {};
   Object.keys(tulokakData).forEach(pId => {
-    let H=0, A=0;
+let H=0, SH=0, A=0;
     for(let d=1; d<=lastDay; d++){
       const tglKey=`${yy}-${mm}-${String(d).padStart(2,'0')}`;
       const s=(absensiLokaqData[tglKey]&&absensiLokaqData[tglKey][pId])?absensiLokaqData[tglKey][pId]:null;
-      if(s==='H') H++;
-      else if(s==='A') A++;
+if(s==='H') H++;
+      else if(s==='SH') SH++;
+      // A tidak dihitung karena tidak disimpan di Firebase
     }
-    rekapMap[pId]={H,A};
+    rekapMap[pId]={H,SH,A};
   });
 
   const totalH = Object.values(rekapMap).reduce((a,b)=>a+b.H,0);
+  const totalSH = Object.values(rekapMap).reduce((a,b)=>a+b.SH,0);
   const totalA = Object.values(rekapMap).reduce((a,b)=>a+b.A,0);
   const mName = MONTH_NAMES_FULL[now2.getMonth()];
 
@@ -617,6 +619,7 @@ function renderAbsenLokaq(el){
       <div style="text-align:right">
         <div style="font-size:10px;opacity:0.75;margin-bottom:3px">Total Hadir</div>
         <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;line-height:1">${totalH}</div>
+        <div style="font-size:11px;opacity:0.8;margin-top:3px">½ Hari: ${totalSH}</div>
       </div>
     </div>`;
 
@@ -630,35 +633,32 @@ function renderAbsenLokaq(el){
 
   Object.keys(tulokakData).forEach(pId=>{
     const p=tulokakData[pId];
-    const r=rekapMap[pId]||{H:0,A:0};
+    const r=rekapMap[pId]||{H:0,SH:0,A:0};
     const bg=avatarColors(p.nama);
     const ini=initials(p.nama);
     const avatarUrl=`https://api.dicebear.com/7.x/micah/svg?seed=${pId}`;
+    const poin = r.H + (r.SH * 0.5);
     const pct = lastDay>0 ? Math.round((r.H/lastDay)*100) : 0;
 
     html+=`<div class="list-item">
-      <div class="avatar" style="background:${bg}">
-        <img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'">
-      </div>
-      <div class="item-info">
-        <div class="item-name">${p.nama}</div>
-        <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center">
-          <span class="absen-chip chip-h">✓ ${r.H} hari</span>
-          <span class="absen-chip chip-a">✗ ${r.A} alpa</span>
-        </div>
-        <div style="margin-top:6px;background:var(--surface2);border-radius:20px;height:5px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:var(--green);border-radius:20px;transition:width .5s"></div>
-        </div>
-      </div>
-      <div class="item-right">
-        <div style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">${r.H}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${pct}%</div>
-      </div>
-    </div>`;
-  });
+  <div class="avatar" style="background:${bg}">
+    <img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'">
+  </div>
+  <div class="item-info">
+    <div class="item-name">${p.nama}</div>
+    <div style="margin-top:6px;background:var(--surface2);border-radius:20px;height:5px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:var(--green);border-radius:20px;transition:width .5s"></div>
+    </div>
+  </div>
+  <div class="item-right">
+    <div style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">${poin}</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:2px">${pct}%</div>
+  </div>
+</div>`;
+});
 
-  html+=`</div>`;
-  el.innerHTML=html;
+html+=`</div>`;
+el.innerHTML=html;
 }
 function renderAbsenRekap(data,peg,el){
   const {mm,yy,start,end,allPeriode}=getAbsenFilterDates();
