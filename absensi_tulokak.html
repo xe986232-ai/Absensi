@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Absensi Tulokak</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F7F8FA;
+  --surface:#FFFFFF;
+  --surface2:#F0F2F5;
+  --text:#0D0F12;
+  --text2:#6B7280;
+  --text3:#9CA3AF;
+  --border:#E5E7EB;
+  --accent:#2563EB;
+  --green:#059669;
+  --red:#DC2626;
+  --orange:#D97706;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(20px + var(--safe-bottom));overflow-x:hidden}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:16px 20px 12px;display:flex;align-items:center;gap:12px;}
+.back-btn{width:36px;height:36px;border-radius:10px;background:var(--surface2);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.back-btn svg{width:18px;height:18px;fill:none;stroke:var(--text);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.header-title{font-size:17px;font-weight:600;color:var(--text)}
+.header-sub{font-size:11px;color:var(--text3);margin-top:1px;font-family:'DM Mono',monospace}
+
+/* TAB */
+.tab-bar{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin:16px 20px 0;}
+.tab-btn{flex:1;padding:9px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text3);border-radius:8px;cursor:pointer;transition:all .2s;}
+.tab-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.08);font-weight:600}
+
+/* CONTENT */
+.content{padding:16px 20px}
+
+/* ABSEN HARI INI */
+.date-banner{background:linear-gradient(135deg,var(--accent),#1d4ed8);border-radius:14px;padding:14px 16px;margin-bottom:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;}
+.date-banner-label{font-size:11px;opacity:0.8;margin-bottom:3px}
+.date-banner-val{font-size:15px;font-weight:600}
+.date-banner-right{text-align:right}
+.date-banner-count{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;line-height:1}
+.date-banner-sub{font-size:10px;opacity:0.75;margin-top:2px}
+
+.summary-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.summary-val{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.summary-label{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.3px}
+
+/* ABSEN LIST */
+.absen-list{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;}
+.absen-list-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.absen-list-header h3{font-size:14px;font-weight:500}
+.absen-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.absen-item:last-child{border-bottom:none}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.absen-name{flex:1;font-size:14px;font-weight:500;color:var(--text)}
+.status-toggle{display:flex;gap:6px}
+.st-btn{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--text3);transition:all .15s;}
+.st-btn.active-h{background:#D1FAE5;border-color:#059669;color:#065F46}
+.st-btn.active-a{background:#FEE2E2;border-color:#DC2626;color:#991B1B}
+
+/* SAVE BTN */
+.save-bar{position:fixed;bottom:calc(16px + var(--safe-bottom));left:20px;right:20px;z-index:200;}
+.save-btn{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(37,99,235,0.35);transition:opacity .15s;}
+.save-btn:active{opacity:0.85}
+.save-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* LOG */
+.log-group{margin-bottom:10px}
+.log-group-btn{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.log-group-label{font-size:13px;font-weight:600;color:var(--text)}
+.log-group-right{display:flex;align-items:center;gap:8px}
+.log-group-count{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.log-group-icon{transition:transform .2s}
+.log-body{display:none;padding-top:6px}
+.log-body.open{display:block}
+
+.log-day{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:6px;}
+.log-day-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.log-chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px 4px 5px;border-radius:20px;font-weight:500;}
+.chip img{width:20px;height:20px;border-radius:50%;flex-shrink:0}
+.chip-h{background:#D1FAE5;color:#065F46}
+.chip-a{background:#FEE2E2;color:#991B1B}
+
+/* FILTER */
+.filter-row{display:flex;gap:8px;margin-bottom:14px}
+.filter-select{flex:1;padding:9px 10px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--surface);color:var(--text);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.filter-select-sm{width:90px;flex:none}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;letter-spacing:0.3px}
+.badge-blue{background:#DBEAFE;color:#1E40AF}
+
+/* LOADING */
+.loading{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(90px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:#0D0F12;color:#fff;font-size:13px;font-weight:500;padding:10px 18px;border-radius:20px;opacity:0;transition:all .3s;z-index:600;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+  </button>
+  <div>
+    <div class="header-title">Absensi Tulokak</div>
+    <div class="header-sub" id="hdr-date">—</div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="setTab('absen',this)">Absen Hari Ini</button>
+  <button class="tab-btn" onclick="setTab('log',this)">Log Harian</button>
+</div>
+
+<!-- ABSEN HARI INI -->
+<div id="tab-absen">
+  <div class="content">
+    <div id="absen-loading" class="loading"><div class="spinner"></div>Memuat data...</div>
+    <div id="absen-content" style="display:none">
+
+      <div class="date-banner">
+        <div>
+          <div class="date-banner-label">Absensi untuk</div>
+          <div class="date-banner-val" id="banner-date">—</div>
+        </div>
+        <div class="date-banner-right">
+          <div class="date-banner-count" id="banner-hadir">0</div>
+          <div class="date-banner-sub">hadir hari ini</div>
+        </div>
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="summary-val" style="color:var(--green)" id="sum-h">0</div>
+          <div class="summary-label">Hadir</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-val" style="color:var(--red)" id="sum-a">0</div>
+          <div class="summary-label">Alpa</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-val" style="color:var(--text2)" id="sum-total">0</div>
+          <div class="summary-label">Total</div>
+        </div>
+      </div>
+
+      <div class="absen-list">
+        <div class="absen-list-header">
+          <h3>Daftar Hadir</h3>
+          <span style="font-size:11px;color:var(--text3)">Tap H / A untuk toggle</span>
+        </div>
+        <div id="absen-rows"></div>
+      </div>
+
+    </div>
+  </div>
+  <div class="save-bar">
+    <button class="save-btn" id="save-btn" onclick="saveAbsen()">Simpan Absensi</button>
+  </div>
+</div>
+
+<!-- LOG HARIAN -->
+<div id="tab-log" style="display:none">
+  <div class="content">
+    <div class="filter-row">
+      <select id="log-filter-month" class="filter-select" onchange="renderLog()"></select>
+      <select id="log-filter-year" class="filter-select filter-select-sm" onchange="renderLog()"></select>
+    </div>
+    <div id="log-loading" class="loading"><div class="spinner"></div>Memuat log...</div>
+    <div id="log-content" style="display:none"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBLOFcW9Q-ETL48ouy0SaLkD8WNJp-VeHY",
+  authDomain: "absensi-cffc4.firebaseapp.com",
+  databaseURL: "https://absensi-cffc4-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "absensi-cffc4"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const now = new Date();
+const todayKey = now.toISOString().split('T')[0];
+const MONTH_NAMES = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+document.getElementById('hdr-date').textContent = now.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+document.getElementById('banner-date').textContent = now.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+let pegawai = {};
+let absensiData = {};
+let statusMap = {}; // id -> 'H' | 'A'
+
+function avatarColors(name){
+  const colors=['#2563EB','#7C3AED','#059669','#D97706','#DC2626','#0891B2'];
+  let h=0; for(let c of name) h=(h+c.charCodeAt(0))%colors.length;
+  return colors[h];
+}
+function initials(name){return name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase()}
+
+// Init filter log
+(function initLogFilter(){
+  const mSel=document.getElementById('log-filter-month');
+  const ySel=document.getElementById('log-filter-year');
+  MONTH_NAMES.forEach((name,i)=>{
+    const o=document.createElement('option');
+    o.value=String(i+1).padStart(2,'0');
+    o.textContent=name;
+    if(i===now.getMonth()) o.selected=true;
+    mSel.appendChild(o);
+  });
+  for(let y=now.getFullYear()-1;y<=now.getFullYear()+1;y++){
+    const o=document.createElement('option');
+    o.value=y; o.textContent=y;
+    if(y===now.getFullYear()) o.selected=true;
+    ySel.appendChild(o);
+  }
+})();
+
+// LOAD pegawai tulokak
+onValue(ref(db,'tulokak'), s=>{
+  pegawai = s.val() || {};
+  loadAbsenToday();
+});
+
+// LOAD absensi
+onValue(ref(db,'absensi_tulokak'), s=>{
+  absensiData = s.val() || {};
+  if(window._tab === 'log') renderLog();
+});
+
+async function loadAbsenToday(){
+  const snap = await get(ref(db, `absensi_tulokak/${todayKey}`));
+  const existing = snap.val() || {};
+
+  // Init statusMap: kalau sudah ada pakai existing, kalau belum default 'H'
+  statusMap = {};
+  Object.keys(pegawai).forEach(id => {
+    statusMap[id] = existing[id] || 'H';
+  });
+
+  renderAbsenRows();
+  document.getElementById('absen-loading').style.display='none';
+  document.getElementById('absen-content').style.display='block';
+}
+
+function renderAbsenRows(){
+  const keys = Object.keys(pegawai);
+  document.getElementById('sum-total').textContent = keys.length;
+
+  let h=0, a=0;
+  Object.values(statusMap).forEach(v=>{ if(v==='H') h++; else a++; });
+  document.getElementById('sum-h').textContent = h;
+  document.getElementById('sum-a').textContent = a;
+  document.getElementById('banner-hadir').textContent = h;
+
+  const el = document.getElementById('absen-rows');
+  if(!keys.length){
+    el.innerHTML='<div class="empty">Belum ada pegawai tulokak.<br>Tambah dulu di halaman Data Tulokak.</div>';
+    return;
+  }
+
+  let html = '';
+  keys.forEach(id => {
+    const p = pegawai[id];
+    const bg = avatarColors(p.nama);
+    const ini = initials(p.nama);
+    const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${id}`;
+    const st = statusMap[id] || 'H';
+    html += `
+      <div class="absen-item" id="row-${id}">
+        <div class="avatar" style="background:${bg}">
+          <img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'">
+        </div>
+        <div class="absen-name">${p.nama}</div>
+        <div class="status-toggle">
+          <button class="st-btn ${st==='H'?'active-h':''}" onclick="toggleStatus('${id}','H')">H</button>
+          <button class="st-btn ${st==='A'?'active-a':''}" onclick="toggleStatus('${id}','A')">A</button>
+        </div>
+      </div>`;
+  });
+  el.innerHTML = html;
+}
+
+window.toggleStatus = function(id, val){
+  statusMap[id] = val;
+  // Update tombol tanpa re-render semua
+  const row = document.getElementById('row-'+id);
+  if(!row) return;
+  const btns = row.querySelectorAll('.st-btn');
+  btns[0].className = 'st-btn' + (val==='H'?' active-h':'');
+  btns[1].className = 'st-btn' + (val==='A'?' active-a':'');
+  // Update summary
+  let h=0,a=0;
+  Object.values(statusMap).forEach(v=>{ if(v==='H') h++; else a++; });
+  document.getElementById('sum-h').textContent=h;
+  document.getElementById('sum-a').textContent=a;
+  document.getElementById('banner-hadir').textContent=h;
+};
+
+window.saveAbsen = async function(){
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Menyimpan...';
+  btn.disabled = true;
+
+  try{
+    await set(ref(db, `absensi_tulokak/${todayKey}`), statusMap);
+    showToast('✅ Absensi berhasil disimpan');
+  } catch(err){
+    showToast('❌ Gagal: ' + err.message);
+  }
+
+  btn.textContent = 'Simpan Absensi';
+  btn.disabled = false;
+};
+
+// LOG
+window.renderLog = function(){
+  document.getElementById('log-loading').style.display='none';
+  const el = document.getElementById('log-content');
+  el.style.display='block';
+
+  const mm = document.getElementById('log-filter-month').value;
+  const yy = document.getElementById('log-filter-year').value;
+  const mName = MONTH_NAMES[parseInt(mm)-1];
+
+  // Filter tanggal di bulan & tahun yang dipilih
+  const allDates = Object.keys(absensiData)
+    .filter(d => d.startsWith(`${yy}-${mm}`))
+    .sort((a,b) => b.localeCompare(a));
+
+  if(!allDates.length){
+    el.innerHTML=`<div class="empty">Tidak ada log absensi di ${mName} ${yy}</div>`;
+    return;
+  }
+
+  // Grup per bulan (sudah difilter, jadi 1 grup saja)
+  const currentMonthKey = todayKey.slice(0,7);
+  const gKey = `${yy}-${mm}`;
+  const isCurrentMonth = gKey === currentMonthKey;
+
+  let html = '';
+
+  // Hitung rekap bulan
+  const rekapMap = {};
+  allDates.forEach(tgl => {
+    const dayData = absensiData[tgl] || {};
+    Object.keys(dayData).forEach(pId => {
+      if(!rekapMap[pId]) rekapMap[pId]={H:0,A:0};
+      if(dayData[pId]==='H') rekapMap[pId].H++;
+      else rekapMap[pId].A++;
+    });
+  });
+
+  // Rekap card
+  if(Object.keys(rekapMap).length){
+    html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.4px">Rekap ${mName} ${yy}</div>`;
+    Object.keys(rekapMap).forEach(pId => {
+      const r = rekapMap[pId];
+      const p = pegawai[pId];
+      const nama = p ? p.nama : pId;
+      const bg = avatarColors(nama);
+      const ini = initials(nama);
+      const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${pId}`;
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div class="avatar" style="width:32px;height:32px;font-size:11px;background:${bg}">
+          <img src="${avatarUrl}" alt="${nama}" onerror="this.parentElement.textContent='${ini}'">
+        </div>
+        <div style="flex:1;font-size:13px;font-weight:500">${nama}</div>
+        <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#D1FAE5;color:#065F46;font-weight:600">✓ ${r.H}</span>
+        <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#FEE2E2;color:#991B1B;font-weight:600">✗ ${r.A}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Log per hari
+  allDates.forEach((tgl, idx) => {
+    const dayData = absensiData[tgl] || {};
+    const d = new Date(tgl+'T00:00:00');
+    const label = d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'});
+    const isToday = tgl === todayKey;
+    const collapseId = `log-day-${idx}`;
+
+    html += `<div class="log-group">
+      <button class="log-group-btn" onclick="toggleLogGroup('${collapseId}')">
+        <span class="log-group-label">${isToday?'📍 ':''} ${label}</span>
+        <div class="log-group-right">
+          ${isCurrentMonth && isToday ? '<span class="badge badge-blue">Hari Ini</span>' : ''}
+          <span class="log-group-count">${Object.keys(dayData).length} orang</span>
+          <svg id="icon-${collapseId}" class="log-group-icon" style="transform:rotate(${isToday?'180':'0'}deg)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </button>
+      <div id="${collapseId}" class="log-body ${isToday?'open':''}">
+        <div class="log-day">
+          <div class="log-chips">`;
+
+    Object.keys(pegawai).forEach(pId => {
+      const p = pegawai[pId];
+      const st = dayData[pId] || 'A';
+      const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${pId}`;
+      const bg = avatarColors(p.nama);
+      html += `<span class="chip ${st==='H'?'chip-h':'chip-a'}">
+        <img src="${avatarUrl}" alt="${p.nama}" style="background:${bg}" onerror="this.style.display='none'">
+        ${p.nama} · ${st==='H'?'✓ Hadir':'✗ Alpa'}
+      </span>`;
+    });
+
+    html += `</div></div></div></div>`;
+  });
+
+  el.innerHTML = html;
+};
+
+window.toggleLogGroup = function(id){
+  const el = document.getElementById(id);
+  const icon = document.getElementById('icon-'+id);
+  const isOpen = el.classList.contains('open');
+  el.classList.toggle('open', !isOpen);
+  icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+};
+
+// TAB
+window._tab = 'absen';
+window.setTab = function(tab, btn){
+  window._tab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-absen').style.display = tab==='absen' ? 'block' : 'none';
+  document.getElementById('tab-log').style.display = tab==='log' ? 'block' : 'none';
+  if(tab==='log') renderLog();
+};
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
