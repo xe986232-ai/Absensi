@@ -210,10 +210,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <button class="seg-btn" onclick="setExpSeg('kios',this)">Kios</button>
     <button class="seg-btn" onclick="setExpSeg('other',this)">NINIQ</button>
   </div>
-  <div class="filter-row">
-    <select id="exp-filter-month" class="filter-select" onchange="renderExp()"></select>
-    <select id="exp-filter-year" class="filter-select filter-select-sm" onchange="renderExp()"></select>
+<!-- Ganti bagian filter-row pengeluaran dengan ini -->
+<div class="filter-row">
+  <select id="exp-filter-month" class="filter-select" onchange="renderExp()"></select>
+  <select id="exp-filter-year" class="filter-select filter-select-sm" onchange="renderExp()"></select>
+  <button id="exp-sort-btn" onclick="toggleExpSort()" style="
+    flex-shrink:0;width:38px;height:38px;border:1px solid var(--border);
+    border-radius:10px;background:var(--surface);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  ">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Dropdown sort — taruh tepat setelah filter-row, sebelum exp-loading -->
+<div id="exp-sort-dropdown" style="display:none;position:relative;margin-top:-8px;margin-bottom:12px;z-index:50">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.10)">
+    <div style="padding:10px 14px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)">Urutkan</div>
+    <button onclick="setExpSort('tgl-desc')" id="sort-opt-tgl-desc" class="sort-opt" style="width:100%;padding:12px 14px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);border-bottom:1px solid var(--border)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 3 18 9"/><polyline points="6 15 12 21 18 15"/></svg>
+      Tanggal — Terbaru
+    </button>
+    <button onclick="setExpSort('tgl-asc')" id="sort-opt-tgl-asc" class="sort-opt" style="width:100%;padding:12px 14px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);border-bottom:1px solid var(--border)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 3 18 9"/><polyline points="6 15 12 21 18 15"/></svg>
+      Tanggal — Terlama
+    </button>
+    <button onclick="setExpSort('nama-asc')" id="sort-opt-nama-asc" class="sort-opt" style="width:100%;padding:12px 14px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);border-bottom:1px solid var(--border)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/></svg>
+      Nama — A ke Z
+    </button>
+    <button onclick="setExpSort('nama-desc')" id="sort-opt-nama-desc" class="sort-opt" style="width:100%;padding:12px 14px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/></svg>
+      Nama — Z ke A
+    </button>
   </div>
+</div>
   <div id="exp-loading" class="loading"><div class="spinner"></div>Memuat pengeluaran...</div>
   <div id="exp-content" style="display:none"></div>
 </div>
@@ -641,24 +674,29 @@ if(s==='H') H++;
     const pct = lastDay>0 ? Math.round((r.H/lastDay)*100) : 0;
 
     html+=`<div class="list-item">
-  <div class="avatar" style="background:${bg}">
-    <img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'">
-  </div>
-  <div class="item-info">
-    <div class="item-name">${p.nama}</div>
-    <div style="margin-top:6px;background:var(--surface2);border-radius:20px;height:5px;overflow:hidden">
-      <div style="height:100%;width:${pct}%;background:var(--green);border-radius:20px;transition:width .5s"></div>
-    </div>
-  </div>
-  <div class="item-right">
-    <div style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">${poin}</div>
-    <div style="font-size:10px;color:var(--text3);margin-top:2px">${pct}%</div>
-  </div>
-</div>`;
-});
+      <div class="avatar" style="background:${bg}">
+        <img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.textContent='${ini}'">
+      </div>
+      <div class="item-info">
+        <div class="item-name">${p.nama}</div>
+        <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center">
+<span class="absen-chip chip-h">✓ ${r.H} hari</span>
+          <span class="absen-chip chip-sh">½ ${r.SH} SH</span>
+          <span class="absen-chip chip-a">✗ ${r.A} alpa</span>
+        </div>
+        <div style="margin-top:6px;background:var(--surface2);border-radius:20px;height:5px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--green);border-radius:20px;transition:width .5s"></div>
+        </div>
+      </div>
+      <div class="item-right">
+<div style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">${poin}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${pct}%</div>
+      </div>
+    </div>`;
+  });
 
-html+=`</div>`;
-el.innerHTML=html;
+  html+=`</div>`;
+  el.innerHTML=html;
 }
 function renderAbsenRekap(data,peg,el){
   const {mm,yy,start,end,allPeriode}=getAbsenFilterDates();
@@ -837,10 +875,17 @@ window.renderExp=function(){
   if(!keys.length){ el.innerHTML='<div class="empty">Belum ada data pengeluaran</div>'; return; }
 
   // Filter by bulan & tahun
-  const filtered=keys.filter(k=>{
-    const d=new Date(data[k].tgl);
-    return String(d.getMonth()+1).padStart(2,'0')===filterMM && String(d.getFullYear())===filterYY;
-  }).sort((a,b)=>new Date(data[b].tgl)-new Date(data[a].tgl));
+  const filtered = keys.filter(k => {
+  const d = new Date(data[k].tgl);
+  return String(d.getMonth()+1).padStart(2,'0') === filterMM && String(d.getFullYear()) === filterYY;
+}).sort((a, b) => {
+  const s = window._expSort || 'tgl-desc';
+  if (s === 'tgl-desc') return new Date(data[b].tgl) - new Date(data[a].tgl);
+  if (s === 'tgl-asc')  return new Date(data[a].tgl) - new Date(data[b].tgl);
+  if (s === 'nama-asc') return (data[a].nama||'').localeCompare(data[b].nama||'');
+  if (s === 'nama-desc') return (data[b].nama||'').localeCompare(data[a].nama||'');
+  return 0;
+});
 
   // Total bulan ini vs total keseluruhan
   let totalFiltered=0, totalAll=0;
@@ -866,7 +911,7 @@ window.renderExp=function(){
   html+=`<div class="list-card">
     <div class="list-header"><h3>Data Pengeluaran</h3><span class="list-count">${filtered.length} item</span></div>
     <div style="overflow-x:auto"><table class="exp-table">
-      <thead><tr><th>Tanggal</th><th>Nama Barang</th><th>Qty</th><th style="text-align:right">Total</th><th>Status</th></tr></thead>
+      <thead><tr><th>Tanggal</th><th>Nama Barang</th><th>Qty</th><th style="text-align:right">Satuan</th><th style="text-align:right">Total</th><th>Status</th></tr></thead>
       <tbody>`;
   filtered.forEach(k=>{
     const item=data[k];
@@ -876,6 +921,7 @@ window.renderExp=function(){
       <td style="font-family:'DM Mono',monospace;white-space:nowrap;font-size:11px">${item.tgl}</td>
       <td>${item.nama}</td>
       <td style="color:var(--text3)">${item.qty||'-'}</td>
+      <td class="money" style="color:var(--text3)">${item.sat ? fmtRp(item.sat) : '-'}</td>
       <td class="money" style="color:var(--text);font-weight:500">${fmtRp(item.tot)}</td>
       <td><span class="badge ${bc}">${st}</span></td>
     </tr>`;
@@ -942,6 +988,40 @@ window.toggleAbsenGroup = function(id) {
   el.style.display = isOpen ? 'none' : 'block';
   icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 };
+// SORT PENGELUARAN
+window._expSort = 'tgl-desc'; // default
+
+window.toggleExpSort = function() {
+  const dd = document.getElementById('exp-sort-dropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+};
+
+window.setExpSort = function(val) {
+  window._expSort = val;
+  // Update visual active state
+  document.querySelectorAll('.sort-opt').forEach(b => {
+    b.style.background = 'none';
+    b.style.fontWeight = '400';
+    b.style.color = 'var(--text)';
+  });
+  const active = document.getElementById('sort-opt-' + val);
+  if (active) {
+    active.style.background = 'var(--surface2)';
+    active.style.fontWeight = '600';
+    active.style.color = 'var(--accent)';
+  }
+  document.getElementById('exp-sort-dropdown').style.display = 'none';
+  renderExp();
+};
+
+// Tutup dropdown kalau klik di luar
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('exp-sort-dropdown');
+  const btn = document.getElementById('exp-sort-btn');
+  if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
 </script>
 </body>
 </html>
