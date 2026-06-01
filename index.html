@@ -108,6 +108,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .filter-row{display:flex;gap:8px;margin-bottom:16px}
 .filter-select{flex:1;padding:9px 10px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--surface);color:var(--text);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
 .filter-select-sm{width:90px;flex:none}
+/* ===== AI AGENT STYLES ===== */
+#ai-toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 12px);left:16px;right:16px;z-index:300;background:#1C1917;color:#fff;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;transform:translateY(120px);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+#ai-toast.show{transform:translateY(0);opacity:1;pointer-events:auto;}
+.ai-toast-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#F59E0B,#EF4444);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.ai-toast-text{flex:1;min-width:0;}
+.ai-toast-title{font-size:13px;font-weight:600;line-height:1.3;}
+.ai-toast-sub{font-size:11px;opacity:0.6;margin-top:2px;}
+.ai-toast-btn{background:#fff;color:#1C1917;border:none;border-radius:8px;padding:7px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;}
+#ai-sheet{position:fixed;inset:0;z-index:400;pointer-events:none;}
+#ai-sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .3s;}
+#ai-sheet-panel{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:24px 24px 0 0;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .4s cubic-bezier(.34,1.2,.64,1);padding-bottom:calc(24px + var(--safe-bottom));}
+#ai-sheet.open{pointer-events:auto;}
+#ai-sheet.open #ai-sheet-overlay{background:rgba(0,0,0,0.5);}
+#ai-sheet.open #ai-sheet-panel{transform:translateY(0);}
+.sheet-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
+.sheet-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sheet-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.anomali-item{padding:14px 20px;border-bottom:1px solid var(--border);}
+.anomali-item:last-child{border-bottom:none;}
+.anomali-nama{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.anomali-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.anomali-label{font-size:11px;color:var(--text3);}
+.anomali-val{font-size:12px;font-weight:500;font-family:'DM Mono',monospace;}
+.anomali-badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-top:6px;}
+.anomali-naik{background:#FEE2E2;color:#991B1B;}
+.anomali-turun{background:#D1FAE5;color:#065F46;}
+.ai-thinking{padding:32px 20px;text-align:center;color:var(--text3);font-size:13px;}
+.ai-thinking-dots{display:flex;justify-content:center;gap:6px;margin-bottom:12px;}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:dotpulse 1.2s ease-in-out infinite;}
+.ai-dot:nth-child(2){animation-delay:.2s;}
+.ai-dot:nth-child(3){animation-delay:.4s;}
+@keyframes dotpulse{0%,80%,100%{transform:scale(0.6);opacity:0.4;}40%{transform:scale(1);opacity:1;}}
 </style>
 </head>
 <body>
@@ -371,7 +403,11 @@ onValue(ref(db,'absensi_tulokak'), s=>{
   absensiLokaqData = s.val()||{}; 
   if(window._absenSeg==='musholla') renderAbsensi();
 });
-onValue(ref(db,'pengeluaran_rumah'), s=>{ expR=s.val()||{}; if(window._expSeg==='rumah') renderExp(); });
+onValue(ref(db,'pengeluaran_rumah'), s=>{
+  expR=s.val()||{};
+  if(window._expSeg==='rumah') renderExp();
+  runAiAnalysis(expR);
+});
 onValue(ref(db,'pengeluaran_musholla'), s=>{ expM=s.val()||{}; if(window._expSeg==='musholla') renderExp(); });
 onValue(ref(db,'pengeluaran_kios'), s=>{ expK=s.val()||{}; if(window._expSeg==='kios') renderExp(); });
 onValue(ref(db,'pengeluaran_other'), s=>{ expO=s.val()||{}; if(window._expSeg==='other') renderExp(); });
@@ -1018,6 +1054,174 @@ document.addEventListener('click', function(e) {
     dd.style.display = 'none';
   }
 });
+// ===== AI AGENT =====
+let aiAnalysisDone = false;
+
+function runAiAnalysis(data){
+  if(aiAnalysisDone) return;
+  const keys = Object.keys(data);
+  if(!keys.length) return;
+
+  // Kelompokkan per nama barang (normalize lowercase)
+  const grouped = {};
+  keys.forEach(k => {
+    const item = data[k];
+    if(!item.nama || !item.sat || !item.tgl) return;
+    const key = item.nama.toLowerCase().trim();
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push({nama: item.nama, sat: Number(item.sat), tgl: item.tgl, qty: item.qty||''});
+  });
+
+  // Cari anomali — harga satuan beda > 10% antar transaksi
+  const anomali = [];
+  Object.values(grouped).forEach(arr => {
+    if(arr.length < 2) return;
+    arr.sort((a,b) => new Date(a.tgl) - new Date(b.tgl));
+    for(let i = 1; i < arr.length; i++){
+      const prev = arr[i-1], curr = arr[i];
+      if(prev.sat === 0) return;
+      const selisihPct = ((curr.sat - prev.sat) / prev.sat) * 100;
+      if(Math.abs(selisihPct) >= 10){
+        anomali.push({
+          nama: curr.nama,
+          satLama: prev.sat, tglLama: prev.tgl, qtyLama: prev.qty,
+          satBaru: curr.sat, tglBaru: curr.tgl, qtyBaru: curr.qty,
+          pct: selisihPct
+        });
+      }
+    }
+  });
+
+  if(!anomali.length) return; // Tidak ada anomali, tidak perlu toast
+
+  // Simpan hasil untuk sheet
+  window._aiAnomalyData = anomali;
+
+  // Kirim ke Claude AI untuk narasi
+  fetchAiNarasi(anomali);
+
+  // Tampilkan toast
+  aiAnalysisDone = true;
+  document.getElementById('ai-toast-title').textContent = `⚠️ ${anomali.length} anomali harga terdeteksi`;
+  document.getElementById('ai-toast-sub').textContent = 'Tap View untuk lihat detail';
+  const toast = document.getElementById('ai-toast');
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), 8000);
+}
+
+function fetchAiNarasi(anomali){
+  const narasiMap = {};
+  anomali.forEach(a => {
+    const naik = a.pct > 0;
+    const absPct = Math.abs(a.pct).toFixed(1);
+    let teks = '';
+    if(Math.abs(a.pct) >= 50)
+      teks = naik ? `Kenaikan sangat signifikan ${absPct}%, perlu verifikasi segera — kemungkinan kesalahan input atau perubahan supplier.` : `Penurunan drastis ${absPct}%, periksa kembali apakah harga sudah sesuai.`;
+    else if(Math.abs(a.pct) >= 20)
+      teks = naik ? `Harga naik ${absPct}% dari transaksi sebelumnya, cukup signifikan — bisa jadi kenaikan harga pasar atau perbedaan kualitas barang.` : `Harga turun ${absPct}%, mungkin ada diskon atau perubahan spesifikasi barang.`;
+    else
+      teks = naik ? `Harga naik ${absPct}% dari transaksi sebelumnya, masih dalam batas wajar namun perlu diperhatikan.` : `Harga turun ${absPct}%, kemungkinan ada negosiasi harga atau promo dari supplier.`;
+    narasiMap[a.nama.toLowerCase().trim()] = teks;
+  });
+  window._aiNarasi = Object.entries(narasiMap).map(([k,v])=>`${k}:${v}`).join('\n');
+  if(document.getElementById('ai-sheet').classList.contains('open')) renderAiSheet();
+}
+window.openAiSheet = function(){
+  document.getElementById('ai-sheet').classList.add('open');
+  renderAiSheet();
+  document.getElementById('ai-toast').classList.remove('show');
+};
+
+window.closeAiSheet = function(){
+  document.getElementById('ai-sheet').classList.remove('open');
+};
+
+function renderAiSheet(){
+  const anomali = window._aiAnomalyData || [];
+  const narasi = window._aiNarasi;
+  const body = document.getElementById('ai-sheet-body');
+
+  // Parse narasi per barang
+  const narasiMap = {};
+  if(narasi){
+    narasi.split('\n').forEach(line => {
+      const idx = line.indexOf(':');
+      if(idx > -1){
+        const key = line.slice(0, idx).trim().toLowerCase();
+        narasiMap[key] = line.slice(idx+1).trim();
+      }
+    });
+  }
+
+  if(!anomali.length){
+    body.innerHTML = '<div class="ai-thinking">Tidak ada anomali ditemukan ✅</div>';
+    return;
+  }
+
+  let html = `<div style="padding:14px 20px 8px;font-size:12px;color:var(--text3)">
+    Ditemukan <strong style="color:var(--text)">${anomali.length} anomali</strong> perubahan harga ≥10% pada Pengeluaran Rumah
+  </div>`;
+
+  anomali.forEach(a => {
+    const naik = a.pct > 0;
+    const pctLabel = `${naik ? '+' : ''}${a.pct.toFixed(1)}%`;
+    const narasiKey = a.nama.toLowerCase().trim();
+    const narasiText = narasiMap[narasiKey] || (narasi ? '' : null);
+
+    html += `<div class="anomali-item">
+      <div class="anomali-nama">${a.nama}</div>
+      <div class="anomali-row">
+        <span class="anomali-label">Harga lama (${a.tglLama})</span>
+        <span class="anomali-val">Rp ${a.satLama.toLocaleString('id-ID')} <span style="color:var(--text3);font-size:10px">${a.qtyLama}</span></span>
+      </div>
+      <div class="anomali-row">
+        <span class="anomali-label">Harga baru (${a.tglBaru})</span>
+        <span class="anomali-val" style="color:${naik ? 'var(--red)' : 'var(--green)'}">Rp ${a.satBaru.toLocaleString('id-ID')} <span style="color:var(--text3);font-size:10px">${a.qtyBaru}</span></span>
+      </div>
+      <span class="anomali-badge ${naik ? 'anomali-naik' : 'anomali-turun'}">${naik ? '↑ Naik' : '↓ Turun'} ${pctLabel}</span>
+      ${narasiText
+        ? `<div style="margin-top:8px;font-size:12px;color:var(--text2);line-height:1.5;background:var(--surface2);border-radius:8px;padding:10px 12px">${narasiText}</div>`
+        : narasi === null
+          ? ''
+          : `<div style="margin-top:8px;font-size:12px;color:var(--text3)">AI sedang menganalisis...</div>`
+      }
+    </div>`;
+  });
+
+  body.innerHTML = html;
+}
 </script>
+<!-- AI AGENT TOAST -->
+<div id="ai-toast">
+  <div class="ai-toast-icon">🤖</div>
+  <div class="ai-toast-text">
+    <div class="ai-toast-title" id="ai-toast-title">Menganalisis harga...</div>
+    <div class="ai-toast-sub" id="ai-toast-sub">Pengeluaran Rumah</div>
+  </div>
+  <button class="ai-toast-btn" onclick="openAiSheet()">View</button>
+</div>
+
+<!-- AI AGENT BOTTOM SHEET -->
+<div id="ai-sheet">
+  <div id="ai-sheet-overlay" onclick="closeAiSheet()"></div>
+  <div id="ai-sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <div style="font-size:15px;font-weight:600">Analisis Harga AI</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Pengeluaran Rumah</div>
+      </div>
+      <button class="sheet-close" onclick="closeAiSheet()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="ai-sheet-body">
+      <div class="ai-thinking">
+        <div class="ai-thinking-dots"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+        Sedang menganalisis...
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
