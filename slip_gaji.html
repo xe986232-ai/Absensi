@@ -217,7 +217,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       Download PDF Slip Gaji
     </button>
   </div>
-
+<!-- TOTAL BAR PAYROLL -->
+<div id="payroll-summary-bar" style="display:none;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:16px;padding:14px 16px;margin-bottom:16px;color:#fff;">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:11px;opacity:0.85" id="summary-periode-label">—</div>
+      <div style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:-0.5px;margin-top:4px" id="summary-total-gaji">Rp 0</div>
+    </div>
+    <div style="text-align:right;opacity:0.85">
+      <div style="font-size:10px;margin-bottom:4px">Pegawai Dihitung</div>
+      <div style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace" id="summary-jml-peg">0</div>
+      <div style="font-size:10px;margin-top:2px" id="summary-poin-total">0 poin total</div>
+    </div>
+  </div>
+</div>
   <div id="peg-loading" class="loading"><div class="spinner"></div>Memuat pegawai...</div>
   <div id="peg-list" style="display:none"></div>
 
@@ -269,6 +282,7 @@ let activeUid = null;
 
 function onFilterChange(){
   closeDetail();
+  hitungSummaryBar(); 
 }
 
 // ---- FIREBASE LISTENERS ----
@@ -286,6 +300,7 @@ function listenAbsensi(){
   const path = activeSeg === 'rumah' ? 'absensi' : 'absensi_musholla';
   onValue(ref(db, path), s=>{
     dataAbsensi = s.val()||{};
+    hitungSummaryBar(); 
     // Jika ada panel terbuka, refresh hitungan
     if(activeUid) hitungAbsensi(activeUid);
   });
@@ -326,14 +341,24 @@ function renderPegawai(){
           <span style="font-size:11px;color:var(--text3)">${fmtRp(p.gaji)}/hari</span>
         </div>
       </div>
-      <button class="btn-view" onclick="openDetail('${id}')">Lihat</button>
+      <button class="btn-view" onclick="goToDetail('${id}')">Lihat</button>
     </div>`;
   });
 
   html += `</div>`;
   el.innerHTML = html;
+  hitungSummaryBar(); 
 }
-
+// ---- GO TO DETAIL PAGE ----
+window.goToDetail = function(uid){
+  const p = dataPegawai[uid];
+  if(!p) return;
+  const mm = document.getElementById('filter-month').value;
+  const yy = document.getElementById('filter-year').value;
+  const per = document.getElementById('filter-periode').value;
+  const slug = p.nama.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  window.location.href = `detail.html?uid=${uid}&slug=${slug}&m=${mm}&y=${yy}&p=${per}`;
+};
 // ---- OPEN / CLOSE DETAIL ----
 window.openDetail = function(uid){
   activeUid = uid;
@@ -394,7 +419,50 @@ window.hitungAbsensi = function(uid){
 
   hitungTotal();
 };
+// ---- SUMMARY BAR ----
+function hitungSummaryBar(){
+  const mm = document.getElementById('filter-month').value;
+  const yy = document.getElementById('filter-year').value;
+  const p = parseInt(document.getElementById('filter-periode').value);
+  const lastDay = new Date(parseInt(yy), parseInt(mm), 0).getDate();
+  const dayStart = p === 1 ? 1 : 16;
+  const dayEnd = p === 1 ? 15 : lastDay;
+  const mName = MONTH_NAMES[parseInt(mm)-1];
+  const periodeLabel = `Total Payroll · P${p} (${p===1?'1-15':'16-Akhir'}) ${mName} ${yy}`;
 
+  const pegKeys = Object.keys(dataPegawai).filter(k => dataPegawai[k].stat !== 'cuti');
+  if(!pegKeys.length){
+    document.getElementById('payroll-summary-bar').style.display = 'none';
+    return;
+  }
+
+  let grandTotal = 0;
+  let totalPoin = 0;
+  let pegDihitung = 0;
+
+  pegKeys.forEach(uid => {
+    const peg = dataPegawai[uid];
+    let H = 0, SH = 0;
+    for(let d = dayStart; d <= dayEnd; d++){
+      const key = `${yy}-${mm}-${String(d).padStart(2,'0')}`;
+      const s = dataAbsensi[key] && dataAbsensi[key][uid] ? dataAbsensi[key][uid] : null;
+      if(s === 'H') H++;
+      else if(s === 'SH') SH++;
+    }
+    const poin = H + SH * 0.5;
+    if(poin > 0){
+      grandTotal += Math.floor(peg.gaji * poin);
+      totalPoin += poin;
+      pegDihitung++;
+    }
+  });
+
+  document.getElementById('summary-periode-label').textContent = periodeLabel;
+  document.getElementById('summary-total-gaji').textContent = fmtRp(grandTotal);
+  document.getElementById('summary-jml-peg').textContent = pegDihitung;
+  document.getElementById('summary-poin-total').textContent = totalPoin + ' poin total';
+  document.getElementById('payroll-summary-bar').style.display = 'block';
+}
 window.hitungTotal = function(){
   const uid = activeUid;
   if(!uid || !dataPegawai[uid]) return;
