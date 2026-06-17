@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rizfx — Detail Pegawai</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F7F8FA;
+  --surface:#FFFFFF;
+  --surface2:#F0F2F5;
+  --text:#0D0F12;
+  --text2:#6B7280;
+  --text3:#9CA3AF;
+  --border:#E5E7EB;
+  --accent:#2563EB;
+  --accent2:#7C3AED;
+  --green:#059669;
+  --red:#DC2626;
+  --orange:#D97706;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(32px + var(--safe-bottom));overflow-x:hidden}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;}
+.btn-back{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.btn-back svg{width:18px;height:18px;fill:none;stroke:var(--text);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.header-title{font-size:15px;font-weight:600;color:var(--text)}
+.header-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.header-badge{font-size:10px;font-family:'DM Mono',monospace;background:var(--accent);color:#fff;padding:3px 8px;border-radius:4px;margin-left:auto;}
+
+/* HERO CARD */
+.hero{margin:20px;background:var(--surface);border:1px solid var(--border);border-radius:24px;overflow:hidden;position:relative;}
+.hero-gradient{height:90px;background:linear-gradient(135deg,var(--accent),var(--accent2));position:relative;}
+.hero-gradient-pattern{position:absolute;inset:0;opacity:0.15;background-image:radial-gradient(circle at 20% 50%, #fff 1px, transparent 1px),radial-gradient(circle at 80% 20%, #fff 1px, transparent 1px);background-size:24px 24px;}
+.hero-avatar-wrap{position:absolute;bottom:-36px;left:20px;}
+.hero-avatar{width:72px;height:72px;border-radius:50%;border:4px solid var(--surface);overflow:hidden;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.12);}
+.hero-avatar img{width:100%;height:100%;object-fit:cover}
+.hero-body{padding:48px 20px 20px;}
+.hero-name{font-size:20px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
+.hero-meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:3px 10px;border-radius:6px;letter-spacing:0.3px;text-transform:uppercase;}
+.badge-green{background:#D1FAE5;color:#065F46}
+.badge-blue{background:#DBEAFE;color:#1E40AF}
+.badge-purple{background:#EDE9FE;color:#5B21B6}
+.badge-orange{background:#FEF3C7;color:#92400E}
+.hero-gaji{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;}
+.hero-join{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;margin-top:6px;}
+
+/* CONTENT */
+.content{padding:0 20px 20px;}
+
+/* TOTAL CARD */
+.total-card{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:20px;padding:18px 20px;margin-bottom:16px;color:#fff;position:relative;overflow:hidden;}
+.total-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08);}
+.total-card::after{content:'';position:absolute;bottom:-20px;right:40px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.06);}
+.total-card-label{font-size:11px;opacity:0.8;letter-spacing:0.5px;text-transform:uppercase;font-weight:500;}
+.total-card-val{font-size:32px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:-1.5px;margin:6px 0 2px;line-height:1;}
+.total-card-sub{font-size:12px;opacity:0.75;}
+.total-card-row{display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:1;}
+.total-card-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.2);position:relative;z-index:1;}
+.tc-stat{text-align:center;}
+.tc-stat-val{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+.tc-stat-label{font-size:10px;opacity:0.7;margin-top:3px;text-transform:uppercase;letter-spacing:0.3px;}
+.tc-divider{width:1px;background:rgba(255,255,255,0.2);}
+
+/* SECTION TITLE */
+.sec-title{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ABSENSI TABLE */
+.absen-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:16px;}
+.absen-card-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.absen-card-title{font-size:14px;font-weight:600;color:var(--text);}
+.absen-card-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+
+.absen-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:14px;}
+.absen-day{border-radius:12px;padding:8px 4px;text-align:center;background:var(--surface2);cursor:default;transition:transform .15s;}
+.absen-day:active{transform:scale(0.95)}
+.absen-day-num{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;line-height:1;margin-bottom:4px;}
+.absen-day-status{font-size:9px;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;opacity:0.8}
+.absen-day.hadir{background:#D1FAE5;}
+.absen-day.hadir .absen-day-num{color:#065F46;}
+.absen-day.hadir .absen-day-status{color:#065F46;}
+.absen-day.setengah{background:#FEF3C7;}
+.absen-day.setengah .absen-day-num{color:#92400E;}
+.absen-day.setengah .absen-day-status{color:#92400E;}
+.absen-day.alpa{background:#FEE2E2;}
+.absen-day.alpa .absen-day-num{color:#991B1B;}
+.absen-day.alpa .absen-day-status{color:#991B1B;}
+.absen-day.nodata{background:var(--surface2);}
+.absen-day.nodata .absen-day-num{color:var(--text3);}
+.absen-day.nodata .absen-day-status{color:var(--text3);}
+.absen-day.future{opacity:0.35;}
+
+/* LEGEND */
+.legend{display:flex;gap:12px;padding:0 14px 14px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
+.legend-dot{width:10px;height:10px;border-radius:3px;}
+
+/* SUMMARY MINI */
+.summary-mini-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.summary-mini{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;}
+.summary-mini-val{font-size:24px;font-weight:700;letter-spacing:-1px;line-height:1;}
+.summary-mini-label{font-size:10px;color:var(--text3);margin-top:5px;text-transform:uppercase;letter-spacing:0.3px;font-weight:500;}
+
+/* LOADING */
+.loading{text-align:center;padding:60px 20px;color:var(--text3);font-size:13px;}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SHIMMER */
+.shimmer{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* PERIODE TOGGLE */
+.periode-toggle{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:16px;}
+.per-btn{flex:1;padding:8px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text3);border-radius:8px;cursor:pointer;transition:all .2s;}
+.per-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="btn-back" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div>
+    <div class="header-title" id="hdr-nama">Detail Pegawai</div>
+    <div class="header-sub" id="hdr-sub">Memuat data...</div>
+  </div>
+  <div class="header-badge" id="hdr-badge">PAYROLL</div>
+</div>
+
+<div id="page-loading" class="loading">
+  <div class="spinner"></div>Memuat data pegawai...
+</div>
+
+<div id="page-content" style="display:none">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-gradient">
+      <div class="hero-gradient-pattern"></div>
+      <div class="hero-avatar-wrap">
+        <div class="hero-avatar" id="hero-avatar"></div>
+      </div>
+    </div>
+    <div class="hero-body">
+      <div class="hero-name" id="hero-nama">—</div>
+      <div class="hero-meta">
+        <span class="badge" id="hero-badge">—</span>
+        <span class="hero-gaji" id="hero-gaji">—</span>
+      </div>
+      <div class="hero-join" id="hero-join">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="hero-join-txt">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- PERIODE TOGGLE -->
+    <div class="periode-toggle">
+      <button class="per-btn" id="btn-p1" onclick="setPeriode(1)">P1 · 1–15</button>
+      <button class="per-btn" id="btn-p2" onclick="setPeriode(2)">P2 · 16–Akhir</button>
+    </div>
+
+    <!-- TOTAL CARD -->
+    <div class="total-card" style="margin-bottom:16px">
+      <div class="total-card-row">
+        <div>
+          <div class="total-card-label" id="tc-label">—</div>
+          <div class="total-card-val" id="tc-total">Rp 0</div>
+          <div class="total-card-sub" id="tc-sub">— poin × Rp —/hari</div>
+        </div>
+        <div style="text-align:right;opacity:0.8;z-index:1;position:relative">
+          <div style="font-size:10px;margin-bottom:4px">Gaji/Hari</div>
+          <div style="font-size:16px;font-weight:700;font-family:'DM Mono',monospace" id="tc-perhari">—</div>
+        </div>
+      </div>
+      <div class="total-card-stats">
+        <div class="tc-stat">
+          <div class="tc-stat-val" id="tc-h">0</div>
+          <div class="tc-stat-label">Hadir</div>
+        </div>
+        <div class="tc-divider"></div>
+        <div class="tc-stat">
+          <div class="tc-stat-val" id="tc-sh">0</div>
+          <div class="tc-stat-label">½ Hari</div>
+        </div>
+        <div class="tc-divider"></div>
+        <div class="tc-stat">
+          <div class="tc-stat-val" id="tc-a">0</div>
+          <div class="tc-stat-label">Alpa</div>
+        </div>
+        <div class="tc-divider"></div>
+        <div class="tc-stat">
+          <div class="tc-stat-val" id="tc-poin">0</div>
+          <div class="tc-stat-label">Poin</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABSENSI SECTION -->
+    <div class="sec-title">Tabel Kehadiran</div>
+
+    <div class="absen-card">
+      <div class="absen-card-header">
+        <div class="absen-card-title" id="absen-card-title">—</div>
+        <div class="absen-card-sub" id="absen-card-range">—</div>
+      </div>
+      <div class="absen-grid" id="absen-grid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#D1FAE5;border:1px solid #6EE7B7"></div>Hadir</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FEF3C7;border:1px solid #FCD34D"></div>½ Hari</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FEE2E2;border:1px solid #FCA5A5"></div>Alpa</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--surface2);border:1px solid var(--border)"></div>Tdk Ada Data</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBLOFcW9Q-ETL48ouy0SaLkD8WNJp-VeHY",
+  authDomain: "absensi-cffc4.firebaseapp.com",
+  databaseURL: "https://absensi-cffc4-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "absensi-cffc4"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const MONTH_NAMES = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const DAY_NAMES = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+
+// Parse URL params
+const params = new URLSearchParams(location.search);
+const uid  = params.get('uid');
+const mm   = params.get('m') || String(new Date().getMonth()+1).padStart(2,'0');
+const yy   = params.get('y') || String(new Date().getFullYear());
+const pInit= parseInt(params.get('p')) || 1;
+
+let pegawai = null;
+let absensiData = {};
+let currentPeriode = pInit;
+
+function fmtRp(n){ return 'Rp '+Math.floor(n||0).toLocaleString('id-ID'); }
+function avatarColors(name){
+  const colors=['#2563EB','#7C3AED','#059669','#D97706','#DC2626','#0891B2'];
+  let h=0; for(let c of name) h=(h+c.charCodeAt(0))%colors.length;
+  return colors[h];
+}
+function initials(name){ return name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase(); }
+
+if(!uid){ document.getElementById('page-loading').innerHTML='<div style="color:var(--red);padding:40px 20px;text-align:center">❌ Data tidak ditemukan</div>'; }
+
+// Load pegawai
+onValue(ref(db,'pegawai'), s=>{
+  const all = s.val()||{};
+  if(!all[uid]){ document.getElementById('page-loading').innerHTML='<div style="color:var(--red);padding:40px 20px;text-align:center">❌ Pegawai tidak ditemukan</div>'; return; }
+  pegawai = all[uid];
+  renderProfile();
+  tryRender();
+});
+
+// Load absensi
+onValue(ref(db,'absensi'), s=>{
+  absensiData = s.val()||{};
+  tryRender();
+});
+
+function tryRender(){
+  if(!pegawai || !Object.keys(absensiData).length && !pegawai) return;
+  if(!pegawai) return;
+  document.getElementById('page-loading').style.display='none';
+  document.getElementById('page-content').style.display='block';
+  renderPeriode(currentPeriode);
+}
+
+function renderProfile(){
+  const p = pegawai;
+  const bg = avatarColors(p.nama);
+  const ini = initials(p.nama);
+  const avatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${uid}`;
+
+  // Header
+  document.getElementById('hdr-nama').textContent = p.nama;
+  document.getElementById('hdr-sub').textContent = p.status + ' · ' + MONTH_NAMES[parseInt(mm)-1] + ' ' + yy;
+  document.getElementById('hdr-badge').textContent = p.status.toUpperCase();
+
+  // Hero avatar
+  const avatarEl = document.getElementById('hero-avatar');
+  avatarEl.style.background = bg;
+  avatarEl.innerHTML = `<img src="${avatarUrl}" alt="${p.nama}" onerror="this.parentElement.innerHTML='${ini}'" style="width:100%;height:100%;object-fit:cover">`;
+
+  document.getElementById('hero-nama').textContent = p.nama;
+
+  const badgeClass = p.status==='Kepala Tukang'?'badge-purple':p.status==='Tukang'?'badge-blue':'badge-green';
+  const badgeEl = document.getElementById('hero-badge');
+  badgeEl.textContent = p.status;
+  badgeEl.className = 'badge ' + badgeClass;
+
+  document.getElementById('hero-gaji').textContent = fmtRp(p.gaji) + '/hari';
+
+  const joinLabel = p.joinDate
+    ? new Date(p.joinDate+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})
+    : 'Tidak diketahui';
+  document.getElementById('hero-join-txt').textContent = 'Bergabung ' + joinLabel;
+}
+
+function renderPeriode(per){
+  currentPeriode = per;
+
+  // Toggle active
+  document.getElementById('btn-p1').classList.toggle('active', per===1);
+  document.getElementById('btn-p2').classList.toggle('active', per===2);
+
+  const lastDay = new Date(parseInt(yy), parseInt(mm), 0).getDate();
+  const dayStart = per===1 ? 1 : 16;
+  const dayEnd   = per===1 ? 15 : lastDay;
+  const mName    = MONTH_NAMES[parseInt(mm)-1];
+
+  // Hitung H, SH, A
+  let H=0, SH=0, A=0;
+  const dayStatuses = {};
+  for(let d=dayStart; d<=dayEnd; d++){
+    const key = `${yy}-${mm}-${String(d).padStart(2,'0')}`;
+    const s = absensiData[key] && absensiData[key][uid] ? absensiData[key][uid] : null;
+    dayStatuses[d] = s;
+    if(s==='H') H++;
+    else if(s==='SH') SH++;
+    else if(s==='A') A++;
+  }
+
+  const poin = H + SH*0.5;
+  const total = Math.floor((pegawai.gaji||0) * poin);
+  const todayNum = new Date().getDate();
+  const isCurrentMonth = mm === String(new Date().getMonth()+1).padStart(2,'0') && yy === String(new Date().getFullYear());
+
+  // Total card
+  document.getElementById('tc-label').textContent = `P${per} (${per===1?'1–15':'16–'+lastDay}) ${mName} ${yy}`;
+  document.getElementById('tc-total').textContent = fmtRp(total);
+  document.getElementById('tc-sub').textContent = `${poin} poin × ${fmtRp(pegawai.gaji)}/hari`;
+  document.getElementById('tc-perhari').textContent = fmtRp(pegawai.gaji);
+  document.getElementById('tc-h').textContent = H;
+  document.getElementById('tc-sh').textContent = SH;
+  document.getElementById('tc-a').textContent = A;
+  document.getElementById('tc-poin').textContent = poin;
+
+  // Absen card header
+  document.getElementById('absen-card-title').textContent = `${mName} ${yy}`;
+  document.getElementById('absen-card-range').textContent = `${dayStart}–${dayEnd}`;
+
+  // Build grid
+  let gridHtml = '';
+  for(let d=dayStart; d<=dayEnd; d++){
+    const s = dayStatuses[d];
+    const date = new Date(parseInt(yy), parseInt(mm)-1, d);
+    const dayName = DAY_NAMES[date.getDay()];
+    const isFuture = isCurrentMonth && d > todayNum;
+    const isToday  = isCurrentMonth && d === todayNum;
+
+    let cls = 'absen-day nodata';
+    let statusTxt = dayName;
+    if(s==='H'){ cls='absen-day hadir'; statusTxt='Hadir'; }
+    else if(s==='SH'){ cls='absen-day setengah'; statusTxt='½'; }
+    else if(s==='A'){ cls='absen-day alpa'; statusTxt='Alpa'; }
+    if(isFuture) cls += ' future';
+
+    const todayRing = isToday ? 'box-shadow:0 0 0 2px var(--accent);' : '';
+
+    gridHtml += `<div class="${cls}" style="${todayRing}">
+      <div class="absen-day-num">${d}</div>
+      <div class="absen-day-status">${statusTxt}</div>
+    </div>`;
+  }
+  document.getElementById('absen-grid').innerHTML = gridHtml;
+}
+
+window.setPeriode = function(per){ renderPeriode(per); };
+</script>
+</body>
+</html>
