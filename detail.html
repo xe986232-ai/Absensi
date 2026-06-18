@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Rizfx — Detail Pegawai</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -120,6 +121,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .periode-toggle{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:16px;}
 .per-btn{flex:1;padding:8px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text3);border-radius:8px;cursor:pointer;transition:all .2s;}
 .per-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+/* LEMBUR & DOWNLOAD */
+.lembur-section{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:16px;}
+.lembur-section-header{padding:14px 16px;border-bottom:1px solid var(--border);}
+.lembur-section-title{font-size:14px;font-weight:600;color:var(--text);}
+.lembur-section-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.lembur-input-row{padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.lembur-label{font-size:13px;color:var(--text2);flex:1;}
+.lembur-input{width:140px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;font-family:'DM Mono',monospace;font-size:13px;background:var(--surface);color:var(--text);text-align:right;}
+.lembur-input:focus{outline:none;border-color:var(--accent);}
+.btn-download{width:calc(100% - 32px);margin:0 16px 16px;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;}
+.btn-download:active{opacity:0.85;}
+.btn-download svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 </style>
 </head>
 <body>
@@ -205,7 +218,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
     </div>
-
+<!-- LEMBUR & DOWNLOAD -->
+<div class="lembur-section">
+  <div class="lembur-section-header">
+    <div class="lembur-section-title">Lembur / Bonus</div>
+    <div class="lembur-section-sub">Opsional, masukkan jika ada tambahan</div>
+  </div>
+  <div class="lembur-input-row">
+    <div class="lembur-label">Nominal Lembur/Bonus</div>
+    <input type="number" id="input-lembur" class="lembur-input" value="0" placeholder="0" oninput="updateTotal()">
+  </div>
+  <button class="btn-download" onclick="downloadPdf()">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Download PDF Slip Gaji
+  </button>
+</div>
     <!-- ABSENSI SECTION -->
     <div class="sec-title">Tabel Kehadiran</div>
 
@@ -387,6 +414,83 @@ function renderPeriode(per){
 }
 
 window.setPeriode = function(per){ renderPeriode(per); };
+// ---- UPDATE TOTAL SAAT LEMBUR BERUBAH ----
+window.updateTotal = function(){
+  if(!pegawai) return;
+  const per = currentPeriode;
+  const lastDay = new Date(parseInt(yy), parseInt(mm), 0).getDate();
+  const dayStart = per===1 ? 1 : 16;
+  const dayEnd   = per===1 ? 15 : lastDay;
+
+  let H=0, SH=0, A=0;
+  for(let d=dayStart; d<=dayEnd; d++){
+    const key = `${yy}-${mm}-${String(d).padStart(2,'0')}`;
+    const s = absensiData[key] && absensiData[key][uid] ? absensiData[key][uid] : null;
+    if(s==='H') H++;
+    else if(s==='SH') SH++;
+    else if(s==='A') A++;
+  }
+
+  const lembur = parseInt(document.getElementById('input-lembur').value)||0;
+  const poin = H + SH*0.5;
+  const total = Math.floor((pegawai.gaji||0) * poin) + lembur;
+
+  document.getElementById('tc-total').textContent = fmtRp(total);
+  document.getElementById('tc-poin').textContent = poin;
+};
+
+// ---- DOWNLOAD PDF ----
+window.downloadPdf = function(){
+  if(!pegawai){ alert('Data pegawai belum dimuat!'); return; }
+
+  const per = currentPeriode;
+  const lastDay = new Date(parseInt(yy), parseInt(mm), 0).getDate();
+  const dayStart = per===1 ? 1 : 16;
+  const dayEnd   = per===1 ? 15 : lastDay;
+  const mName    = MONTH_NAMES[parseInt(mm)-1];
+
+  let H=0, SH=0, A=0;
+  for(let d=dayStart; d<=dayEnd; d++){
+    const key = `${yy}-${mm}-${String(d).padStart(2,'0')}`;
+    const s = absensiData[key] && absensiData[key][uid] ? absensiData[key][uid] : null;
+    if(s==='H') H++;
+    else if(s==='SH') SH++;
+    else if(s==='A') A++;
+  }
+
+  const lembur = parseInt(document.getElementById('input-lembur').value)||0;
+  const poin = H + SH*0.5;
+  const total = Math.floor((pegawai.gaji||0) * poin) + lembur;
+  const periodeLabel = `P${per} (${per===1?'1-15':'16-'+lastDay}) ${mName} ${yy}`;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:[48,100] });
+
+  doc.setFont("courier","bold");
+  doc.setFontSize(10);
+  doc.text("PEMBANGUNAN", 24, 10, {align:"center"});
+  doc.text("SLIP GAJI", 24, 14, {align:"center"});
+  doc.setFontSize(8);
+  doc.text("--------------------------------", 24, 18, {align:"center"});
+  doc.text(`Nama    : ${pegawai.nama}`, 5, 24);
+  doc.text(`Status  : ${pegawai.status}`, 5, 28);
+  doc.setFontSize(7);
+  doc.text(`Periode : ${periodeLabel}`, 5, 32);
+  doc.setFontSize(8);
+  doc.text("--------------------------------", 24, 38, {align:"center"});
+  doc.text(`Hadir (1) : ${H} x ${pegawai.gaji.toLocaleString('id-ID')}`, 5, 44);
+  doc.text(`1/2 Hari  : ${SH} x ${(pegawai.gaji/2).toLocaleString('id-ID')}`, 5, 48);
+  doc.text(`Alpa (0)  : ${A}`, 5, 52);
+  if(lembur>0) doc.text(`Lembur    : Rp ${lembur.toLocaleString('id-ID')}`, 5, 56);
+  doc.text("--------------------------------", 24, lembur>0?62:58, {align:"center"});
+  doc.setFontSize(11);
+  doc.text(`TOTAL: Rp ${total.toLocaleString('id-ID')}`, 24, lembur>0?69:65, {align:"center"});
+  doc.setFontSize(8);
+  doc.text("--------------------------------", 24, lembur>0?75:72, {align:"center"});
+  doc.text("Terima Kasih", 24, lembur>0?81:78, {align:"center"});
+
+  doc.save(`Slip_${pegawai.nama.replace(/\s+/g,'_')}_P${per}_${mm}${yy}.pdf`);
+};
 </script>
 </body>
 </html>
